@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block head_extra %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>{{ t.dash_title }}</h1>
+    <p>{{ t.dash_sub }}</p>
+  </div>
+  <span class="pill">{{ t.dash_realtime }}</span>
+</div>
+
+<div class="grid kpis">
+  <div class="card kpi accent">
+    <div class="lbl"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg></span>{{ t.kpi_students }}</div>
+    <div class="val">{{ total_students }}</div>
+    <div class="sub">{{ t.kpi_students_sub }}</div>
+  </div>
+  <div class="card kpi warn">
+    <div class="lbl"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></span>{{ t.kpi_cases }}</div>
+    <div class="val">{{ total_cases }}</div>
+    <div class="sub">{{ t.kpi_cases_sub }}</div>
+  </div>
+  <div class="card kpi danger">
+    <div class="lbl"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4m0 4h.01"/></svg></span>{{ t.kpi_alerts }}</div>
+    <div class="val">{{ high_risk_cases }}</div>
+    <div class="sub">{{ t.kpi_alerts_sub }}</div>
+  </div>
+</div>
+
+<div class="grid charts">
+  <div class="card panel">
+    <h3>{{ t.chart_risk }}</h3>
+    <p class="hint">{{ t.chart_risk_sub }}</p>
+    <div class="chart-wrap"><canvas id="riskChart"></canvas></div>
+  </div>
+  <div class="card panel">
+    <h3>{{ t.chart_status }}</h3>
+    <p class="hint">{{ t.chart_status_sub }}</p>
+    <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+  </div>
+  <div class="card panel">
+    <h3>{{ t.chart_gov }}</h3>
+    <p class="hint">{{ t.chart_gov_sub }}</p>
+    <div class="chart-wrap"><canvas id="govChart"></canvas></div>
+  </div>
+</div>
+
+<div class="card" style="animation:rise .5s ease both;animation-delay:.18s">
+  <div class="panel-head">
+    <h3>{{ t.priority_cases }}</h3>
+    <span class="muted">{{ t.sorted_by_score }}</span>
+  </div>
+  <table>
+    <thead><tr><th>{{ t.col_student }}</th><th>{{ t.col_status }}</th><th>{{ t.col_risk }}</th><th>{{ t.col_score }}</th><th>{{ t.col_explanation }}</th></tr></thead>
+    <tbody>
+      {% for case in active_cases %}
+      <tr>
+        <td><a class="code-link" href="{% url 'case_detail' case.id %}">{{ case.student.code }}</a>
+          {% if case.student.first_name %}<div class="muted">{{ case.student.first_name }} {{ case.student.last_name }}</div>{% endif %}</td>
+        <td><span class="badge b-stat">{{ case.get_status_display }}</span></td>
+        <td>
+          {% if case.risk_band == 'HIGH' %}<span class="badge b-high">{{ t.risk_high }}</span>
+          {% elif case.risk_band == 'MEDIUM' %}<span class="badge b-med">{{ t.risk_medium }}</span>
+          {% else %}<span class="badge b-low">{{ t.risk_low }}</span>{% endif %}
+        </td>
+        <td><strong>{{ case.risk_score }}</strong><span class="muted">/100</span></td>
+        <td class="muted">{{ case.risk_explanation }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty">{{ t.empty_cases }}</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const ink='#5a6b66', grid='rgba(21,48,43,.07)';
+  Chart.defaults.font.family="'Public Sans',sans-serif";
+  Chart.defaults.color=ink;
+
+  new Chart(document.getElementById('riskChart'),{
+    type:'doughnut',
+    data:{labels:['{{ t.risk_low }}','{{ t.risk_medium }}','{{ t.risk_high }}'],
+      datasets:[{data:{{ risk_distribution|safe }},
+        backgroundColor:['#3f9d6b','#d98a1f','#c2483b'],borderColor:'#fffdf8',borderWidth:3,hoverOffset:6}]},
+    options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,boxHeight:8}}}}
+  });
+
+  const s={{ status_chart|safe }};
+  new Chart(document.getElementById('statusChart'),{
+    type:'bar',
+    data:{labels:s.labels,datasets:[{data:s.data,backgroundColor:'#0f6e62',borderRadius:6,barThickness:18}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:grid},ticks:{precision:0}},y:{grid:{display:false}}}}
+  });
+
+  const g={{ gov_chart|safe }};
+  new Chart(document.getElementById('govChart'),{
+    type:'bar',
+    data:{labels:g.labels,datasets:[{data:g.data,backgroundColor:'#e0992f',borderRadius:6,barThickness:26}]},
+    options:{plugins:{legend:{display:false}},
+      scales:{y:{grid:{color:grid},ticks:{precision:0}},x:{grid:{display:false}}}}
+  });
+</script>
+{% endblock %}

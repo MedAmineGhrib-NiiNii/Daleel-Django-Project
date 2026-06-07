@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Seuils de risque{% endblock %}
+{% block nav_config %}active{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>{{ t.config_title }}</h1>
+    <p>{{ t.config_sub }}</p>
+  </div>
+</div>
+
+{% if messages %}{% for message in messages %}
+  <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+{% endfor %}{% endif %}
+
+<div class="grid" style="grid-template-columns:1.2fr 1fr;align-items:start">
+  <div class="card panel" style="animation:rise .5s ease both">
+    <h3>{{ t.config_define }}</h3>
+    <p class="hint">Le score de risque va de 0 à 100. Règle : 0 &lt; seuil Moyen &lt; seuil Élevé ≤ 100.</p>
+    <form method="post" style="margin-top:8px">
+      {% csrf_token %}
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{ t.config_threshold_medium }} <span class="badge b-med" style="margin-left:4px">{{ t.risk_medium }}</span></label>
+        <input type="number" name="medium_threshold" value="{{ cfg.medium_threshold }}" min="1" max="99" required
+          style="width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fffdf8">
+        <div class="muted" style="font-size:12px;margin-top:5px">Score ≥ cette valeur ⇒ risque Moyen.</div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{ t.config_threshold_medium }} <span class="badge b-high" style="margin-left:4px">{{ t.risk_high }}</span></label>
+        <input type="number" name="high_threshold" value="{{ cfg.high_threshold }}" min="2" max="100" required
+          style="width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fffdf8">
+        <div class="muted" style="font-size:12px;margin-top:5px">Score ≥ cette valeur ⇒ risque Élevé.</div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">{{ t.config_save }}</button>
+    </form>
+  </div>
+
+  <div class="card panel" style="animation:rise .5s ease both;animation-delay:.08s">
+    <h3>{{ t.config_current }}</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="badge b-low">{{ t.risk_low }}</span><span class="muted">score &lt; {{ cfg.medium_threshold }}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="badge b-med">{{ t.risk_medium }}</span><span class="muted">{{ cfg.medium_threshold }} – {{ cfg.high_threshold }}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="badge b-high">{{ t.risk_high }}</span><span class="muted">≥ {{ cfg.high_threshold }}</span>
+      </div>
+    </div>
+    <div class="muted" style="font-size:12px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px">
+      {{ t.config_updated }} : {{ cfg.updated_at|date:"d M Y, H:i" }}. Chaque changement est tracé dans le journal d'audit.
+    </div>
+  </div>
+</div>
+{% endblock %}

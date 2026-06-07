@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_assess }}{% endblock %}
+{% block nav_assess %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.snav_assess }}</h1><p>{{ t.sa_intro }}</p></div></div>
+<div class="card panel" style="background:var(--cream);border:1px solid var(--line);margin-bottom:14px"><p style="font-size:14px;font-weight:600;margin:0">{{ t.sa_recall }}</p></div>
+<div class="card panel">
+  <form method="post">
+    {% csrf_token %}
+    {% for key, label in questions %}
+    <div style="padding:16px 0;{% if not forloop.last %}border-bottom:1px solid var(--surface-2){% endif %}">
+      <div style="font-size:15px;font-weight:600;margin-bottom:12px">{{ forloop.counter }}. {{ label }}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        {% for opt in "012345"|make_list %}
+        <label style="flex:1;min-width:120px;text-align:center;border:1px solid var(--line);border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12.5px">
+          <input type="radio" name="{{ key }}" value="{{ opt }}" {% if opt == '3' %}checked{% endif %} style="margin-right:5px">
+          {% if opt == '0' %}{{ t.sa_opt0 }}{% elif opt == '1' %}{{ t.sa_opt1 }}{% elif opt == '2' %}{{ t.sa_opt2 }}{% elif opt == '3' %}{{ t.sa_opt3 }}{% elif opt == '4' %}{{ t.sa_opt4 }}{% else %}{{ t.sa_opt5 }}{% endif %}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:18px">{{ t.sa_submit }}</button>
+  </form>
+  <p class="muted" style="font-size:12px;margin-top:14px;border-top:1px solid var(--line);padding-top:10px">{{ t.sa_source }}</p>
+</div>
+{% endblock %}

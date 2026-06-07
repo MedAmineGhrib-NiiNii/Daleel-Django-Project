@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_inbox }}{% endblock %}
+{% block nav_inbox %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.snav_inbox }}</h1><p>Auto-évaluations de bien-être envoyées par les élèves.</p></div></div>
+<div class="card">
+  <table>
+    <thead><tr><th>Élève</th><th>Code dossier</th><th>Bien-être</th><th>Niveau</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+      {% for a in items %}
+      <tr>
+        <td><b>{{ a.student_user.username }}</b></td>
+        <td>{% if a.student_code %}<a class="code-link" href="#">{{ a.student_code }}</a>{% else %}<span class="muted">non relié</span>{% endif %}</td>
+        <td><b>{{ a.score }}</b><span class="muted">/100</span></td>
+        <td>{% if a.band == 'OK' %}<span class="badge b-low">Bon</span>{% elif a.band == 'ATTENTION' %}<span class="badge b-med">À surveiller</span>{% else %}<span class="badge b-high">Alerte</span>{% endif %}</td>
+        <td class="muted">{{ a.created_at|date:"d M Y, H:i" }}</td>
+        <td style="text-align:right"><a href="{% url 'counselor_contact_student' a.student_user.id %}" class="btn btn-primary" style="padding:7px 12px;font-size:13px">{{ t.cons_contact_student }}</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6"><div class="empty">Aucune auto-évaluation reçue pour le moment.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

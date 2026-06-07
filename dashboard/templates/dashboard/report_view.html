@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ report.title }}{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <a href="{% url 'report_history' %}" class="muted" style="font-size:13px;text-decoration:none">&larr; {{ t.rep_history_title }}</a>
+    <h1 style="margin-top:6px">{{ report.title }}</h1>
+    <p>{{ t.rep_generated_on }} {{ report.created_at|date:"d M Y, H:i" }} {{ t.by_actor }} {{ report.generated_by.username|default:"système" }} ·
+      {% if report.ai_generated %}{{ t.rep_ai_written }}{% else %}{{ t.rep_model_based }}{% endif %}</p>
+  </div>
+  <a href="{% url 'download_report' report.id %}" class="btn btn-amber">📄 {{ t.rep_download_pdf }}</a>
+</div>
+
+<div class="grid" style="grid-template-columns:300px 1fr;align-items:start">
+  <!-- Récap dossier -->
+  <div class="card panel">
+    <h3>{{ t.case_file }}</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;font-size:14px">
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.col_student }}</span><a class="code-link" href="{% url 'case_detail' report.case.id %}">{{ report.case.student.code }}</a></div>
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.col_score }}</span><b>{{ report.case.risk_score }}/100</b></div>
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.col_risk }}</span>
+        {% if report.case.risk_band == 'HIGH' %}<span class="badge b-high">{{ t.risk_high }}</span>
+        {% elif report.case.risk_band == 'MEDIUM' %}<span class="badge b-med">{{ t.risk_medium }}</span>
+        {% else %}<span class="badge b-low">{{ t.risk_low }}</span>{% endif %}
+      </div>
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.ind_absences }}</span><b>{{ report.case.student.absences_percentage }}%</b></div>
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.ind_grades }}</span><b>{{ report.case.student.grade_drop }}/20</b></div>
+      <div style="display:flex;justify-content:space-between"><span class="muted">{{ t.ind_reports }}</span><b>{{ report.case.student.disciplinary_reports }}</b></div>
+    </div>
+  </div>
+
+  <!-- Contenu du rapport -->
+  <div class="card panel">
+    <h3>{{ t.rep_intervention }}</h3>
+    <div style="margin-top:14px;font-size:14px;line-height:1.7;white-space:pre-wrap;color:var(--ink)">{{ report.narrative }}</div>
+    {% if report.source_directive %}
+    <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:12px;font-size:13px">
+      <b>{{ t.rep_source_directive }}</b> <span class="muted">{{ report.source_directive }}</span>
+    </div>
+    {% endif %}
+    <div class="muted" style="font-size:12px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      ⚠ {{ t.rep_disclaimer }}
+    </div>
+  </div>
+</div>
+{% endblock %}

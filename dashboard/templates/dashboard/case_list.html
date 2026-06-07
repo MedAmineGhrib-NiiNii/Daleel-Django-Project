@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Dossiers{% endblock %}
+{% block nav_cases %}active{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>{{ t.cases_title }}</h1>
+    <p>{{ total }} {{ t.cases_count }}</p>
+  </div>
+  <a href="{% url 'export_cases_csv' %}{% if querystring %}?{{ querystring }}{% endif %}" class="btn btn-amber">{{ t.export_filtered }}</a>
+</div>
+
+<div class="card panel" style="margin-bottom:18px;animation:rise .5s ease both">
+  <form method="get" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_status }}</label>
+      <select name="status" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+        <option value="">{{ t.filter_all }}</option>
+        {% for code, label in status_choices %}<option value="{{ code }}" {% if cur_status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_risk }}</label>
+      <select name="risk_band" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+        <option value="">{{ t.filter_all }}</option>
+        {% for code, label in band_choices %}<option value="{{ code }}" {% if cur_band == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_gov }}</label>
+      <select name="governorate" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+        <option value="">{{ t.filter_all }}</option>
+        {% for g in governorates %}<option value="{{ g }}" {% if cur_gov == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ t.filter_apply }}</button>
+    <a href="{% url 'case_list' %}" class="btn btn-ghost">{{ t.filter_reset }}</a>
+  </form>
+</div>
+
+<div class="card" style="animation:rise .5s ease both;animation-delay:.08s">
+  <table>
+    <thead><tr><th>{{ t.col_student }}</th><th>{{ t.col_governorate }}</th><th>{{ t.col_status }}</th><th>{{ t.col_risk }}</th><th>{{ t.col_score }}</th></tr></thead>
+    <tbody>
+      {% for case in cases %}
+      <tr>
+        <td><a class="code-link" href="{% url 'case_detail' case.id %}">{{ case.student.code }}</a>
+          {% if case.student.first_name %}<div class="muted">{{ case.student.first_name }} {{ case.student.last_name }}</div>{% endif %}</td>
+        <td class="muted">{{ case.student.governorate|default:"—" }}</td>
+        <td><span class="badge b-stat">{{ case.get_status_display }}</span></td>
+        <td>
+          {% if case.risk_band == 'HIGH' %}<span class="badge b-high">{{ t.risk_high }}</span>
+          {% elif case.risk_band == 'MEDIUM' %}<span class="badge b-med">{{ t.risk_medium }}</span>
+          {% else %}<span class="badge b-low">{{ t.risk_low }}</span>{% endif %}
+        </td>
+        <td><strong>{{ case.risk_score }}</strong><span class="muted">/100</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty">{{ t.no_match }}</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

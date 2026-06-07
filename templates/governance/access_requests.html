@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_access }}{% endblock %}
+{% block nav_access %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.snav_access }}</h1><p>Validez l'identité des demandeurs avant d'activer leur compte.</p></div></div>
+
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+<div style="margin-bottom:18px">
+  <div class="panel-head" style="margin-bottom:12px"><h3>En attente</h3><span class="muted">{{ pending|length }} demande(s)</span></div>
+
+  {% for r in pending %}
+  <div class="card panel" style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:17px;font-weight:600">{{ r.full_name }}</div>
+        <div class="muted" style="font-size:13px;margin-top:2px">
+          @{{ r.user.username }} · <span class="badge b-stat">{{ r.get_requested_role_display }}</span>
+          {% if r.student_code %} · Code élève : <b>{{ r.student_code }}</b>{% endif %}
+          · Demandé le {{ r.created_at|date:"d M Y, H:i" }}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="{% url 'review_request' r.id 'approve' %}" class="btn btn-primary">Approuver</a>
+        <a href="{% url 'review_request' r.id 'reject' %}" class="btn btn-danger" onclick="return confirm('Refuser cette demande ?');">Refuser</a>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 220px;gap:18px;margin-top:16px;align-items:start">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Présentation / biographie</div>
+        <div style="background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;white-space:pre-wrap">{{ r.biography|default:"(aucune biographie fournie)" }}</div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Document justificatif</div>
+        {% if r.document %}
+          <a href="{{ r.document.url }}" target="_blank" class="btn btn-amber" style="width:100%;justify-content:center">📎 Ouvrir le document</a>
+          <div class="muted" style="font-size:12px;margin-top:6px;word-break:break-all">{{ r.document.name }}</div>
+        {% else %}
+          <div class="muted" style="font-size:13px;background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:12px 14px">Aucun document fourni.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card panel"><div class="empty">Aucune demande en attente.</div></div>
+  {% endfor %}
+</div>
+
+{% if history %}
+<div class="card">
+  <div class="panel-head"><h3>Historique récent</h3></div>
+  <table>
+    <thead><tr><th>Demandeur</th><th>Rôle</th><th>Décision</th><th>Par</th></tr></thead>
+    <tbody>
+      {% for r in history %}
+      <tr>
+        <td>{{ r.full_name }} <span class="muted">@{{ r.user.username }}</span></td>
+        <td class="muted">{{ r.get_requested_role_display }}</td>
+        <td>{% if r.status == 'APPROVED' %}<span class="badge b-low">Approuvée</span>{% else %}<span class="badge b-high">Refusée</span>{% endif %}</td>
+        <td class="muted">{{ r.reviewed_by.username|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

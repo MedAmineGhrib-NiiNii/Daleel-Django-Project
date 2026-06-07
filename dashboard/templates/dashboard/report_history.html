@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Rapports{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.rep_history_title }}</h1><p>{{ t.rep_history_sub }}</p></div></div>
+
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card">
+  <table>
+    <thead><tr><th>{{ t.col_student }}</th><th>{{ t.rep_col_title }}</th><th>{{ t.rep_col_source }}</th><th>{{ t.rep_col_by }}</th><th>{{ t.rep_col_date }}</th><th></th></tr></thead>
+    <tbody>
+      {% for r in reports %}
+      <tr>
+        <td><a class="code-link" href="{% url 'case_detail' r.case.id %}">{{ r.case.student.code }}</a></td>
+        <td><a class="code-link" href="{% url 'view_report' r.id %}">{{ r.title }}</a></td>
+        <td>{% if r.ai_generated %}<span class="badge b-stat">IA</span>{% else %}<span class="badge b-stat">Modèle</span>{% endif %}</td>
+        <td class="muted">{{ r.generated_by.username|default:"système" }}</td>
+        <td class="muted">{{ r.created_at|date:"d M Y, H:i" }}</td>
+        <td style="white-space:nowrap">
+          <a href="{% url 'view_report' r.id %}" class="btn btn-ghost" style="padding:7px 12px;font-size:13px">{{ t.rep_read }}</a>
+          <a href="{% url 'download_report' r.id %}" class="btn btn-primary" style="padding:7px 12px;font-size:13px">📄 PDF</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6"><div class="empty">{{ t.rep_empty }}</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

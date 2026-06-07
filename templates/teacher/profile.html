@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ t.tp_title }}{% endblock %}
+{% block nav_tprofile %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.tp_title }}</h1><p>{{ t.tp_sub }}</p></div></div>
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card panel" style="max-width:640px">
+  <form method="post">
+    {% csrf_token %}
+    <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">{{ t.tp_subjects }}</label>
+    <input type="text" name="subjects" value="{{ profile.subjects }}" placeholder="{{ t.tp_subjects_ph }}"
+           style="width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+    <p class="hint" style="margin-top:6px">{{ t.tp_subjects_hint }}</p>
+
+    {% if profile.subject_list %}
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">
+      {% for s in profile.subject_list %}<span class="badge b-stat">{{ s }}</span>{% endfor %}
+    </div>
+    {% endif %}
+
+    <label style="display:flex;align-items:center;gap:10px;margin-top:20px;cursor:pointer;font-size:14px">
+      <input type="checkbox" name="is_visible" {% if profile.is_visible %}checked{% endif %} style="width:18px;height:18px">
+      <span><b>{{ t.tp_visible }}</b><br><span class="muted" style="font-size:13px">{{ t.tp_visible_hint }}</span></span>
+    </label>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:20px">{{ t.tp_save }}</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ t.msg_title }}{% endblock %}
+{% block nav_messages %}active{% endblock %}
+{% block nav_smessages %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.msg_title }}</h1><p>{% if is_teacher %}{{ t.msg_sub_teacher }}{% else %}{{ t.msg_sub_student }}{% endif %}</p></div></div>
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+<div class="card">
+  <table>
+    <thead><tr><th>{{ t.msg_with }}</th><th>{{ t.msg_last }}</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><b>{{ r.name }}</b></td>
+        <td class="muted">{{ r.preview }}{% if r.preview %}…{% endif %}</td>
+        <td style="text-align:right"><a href="{% url 'conversation_thread' r.id %}" class="btn btn-ghost" style="padding:7px 12px;font-size:13px">{{ t.msg_open }}</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3"><div class="empty">{% if is_teacher %}{{ t.msg_empty_teacher }}{% else %}{{ t.msg_empty_student }}{% endif %}</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

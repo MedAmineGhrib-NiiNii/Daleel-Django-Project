@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ t.nav_eval }}{% endblock %}
+{% block nav_eval %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.eval_title }}</h1><p>{{ t.eval_sub }}</p></div></div>
+
+{% if not m %}
+<div class="card panel"><div class="empty">{{ t.me_none }} <code>python manage.py train_model</code></div></div>
+{% else %}
+
+<div class="grid kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+  <div class="card kpi accent"><div class="lbl">AUC (ROC)</div><div class="val">{{ m.auc }}</div><div class="sub">{{ t.me_auc_sub }}</div></div>
+  <div class="card kpi accent"><div class="lbl">{{ t.m_accuracy }}</div><div class="val">{{ m.accuracy }}</div><div class="sub">{{ t.me_acc_sub }}</div></div>
+  <div class="card kpi warn"><div class="lbl">{{ t.me_precision }}</div><div class="val">{{ m.precision }}</div><div class="sub">{{ t.me_prec_sub }}</div></div>
+  <div class="card kpi warn"><div class="lbl">{{ t.me_recall }}</div><div class="val">{{ m.recall }}</div><div class="sub">{{ t.me_rec_sub }}</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
+  <div class="card panel">
+    <h3>{{ t.me_confusion }}</h3>
+    <p class="hint">{{ t.me_confusion_sub }} · n={{ m.n_test }}</p>
+    <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;margin-top:12px;font-size:14px">
+      <div></div>
+      <div class="muted" style="text-align:center;font-weight:600">{{ t.me_pred_risk }}</div>
+      <div class="muted" style="text-align:center;font-weight:600">{{ t.me_pred_ok }}</div>
+      <div class="muted" style="font-weight:600;align-self:center">{{ t.me_real_drop }}</div>
+      <div style="background:var(--low-bg);color:var(--low);text-align:center;padding:16px;border-radius:10px;font-weight:700">{{ m.confusion.TP }}<div style="font-size:11px;font-weight:500">{{ t.me_tp }}</div></div>
+      <div style="background:var(--high-bg);color:var(--high);text-align:center;padding:16px;border-radius:10px;font-weight:700">{{ m.confusion.FN }}<div style="font-size:11px;font-weight:500">{{ t.me_fn }}</div></div>
+      <div class="muted" style="font-weight:600;align-self:center">{{ t.me_real_stay }}</div>
+      <div style="background:var(--high-bg);color:var(--high);text-align:center;padding:16px;border-radius:10px;font-weight:700">{{ m.confusion.FP }}<div style="font-size:11px;font-weight:500">{{ t.me_fp }}</div></div>
+      <div style="background:var(--low-bg);color:var(--low);text-align:center;padding:16px;border-radius:10px;font-weight:700">{{ m.confusion.TN }}<div style="font-size:11px;font-weight:500">{{ t.me_tn }}</div></div>
+    </div>
+  </div>
+
+  <div class="card panel">
+    <h3>{{ t.me_weights }}</h3>
+    <p class="hint">{{ t.me_weights_sub }}</p>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:16px">
+      {% for key, label in eval_labels %}
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="font-weight:600">{{ label }}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px"><span class="muted" style="width:70px">{{ t.me_learned }}</span>
+          <div style="flex:1;background:#ece6d8;border-radius:5px;height:14px"><div style="height:100%;border-radius:5px;background:var(--teal);width:{% if key == 'absences' %}{{ m.learned_importance.absences }}{% elif key == 'grades' %}{{ m.learned_importance.grades }}{% else %}{{ m.learned_importance.discipline }}{% endif %}%"></div></div>
+          <b style="width:34px;text-align:right">{% if key == 'absences' %}{{ m.learned_importance.absences }}{% elif key == 'grades' %}{{ m.learned_importance.grades }}{% else %}{{ m.learned_importance.discipline }}{% endif %}%</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span class="muted" style="width:70px">{{ t.me_configured }}</span>
+          <div style="flex:1;background:#ece6d8;border-radius:5px;height:14px"><div style="height:100%;border-radius:5px;background:var(--amber);width:{% if key == 'absences' %}{{ m.configured_weights.absences }}{% elif key == 'grades' %}{{ m.configured_weights.grades }}{% else %}{{ m.configured_weights.discipline }}{% endif %}%"></div></div>
+          <b style="width:34px;text-align:right">{% if key == 'absences' %}{{ m.configured_weights.absences }}{% elif key == 'grades' %}{{ m.configured_weights.grades }}{% else %}{{ m.configured_weights.discipline }}{% endif %}%</b>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+      {{ t.me_note }}
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

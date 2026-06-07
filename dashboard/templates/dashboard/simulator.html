@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Simulateur de risque{% endblock %}
+{% block nav_sim %}active{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>{{ t.sim_title }}</h1>
+    <p>{{ t.sim_sub }}</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 360px;align-items:start">
+  <!-- Controls -->
+  <div class="card panel" style="animation:rise .5s ease both">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <h3>{{ t.indicators }}</h3>
+      <select id="preset" style="font-family:inherit;font-size:13px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;max-width:240px">
+        <option value="">{{ t.sim_load_case }}</option>
+      </select>
+    </div>
+    <p class="hint">{{ t.sim_weights }}</p>
+
+    <div style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><label style="font-size:14px;font-weight:600">{{ t.ind_absences }}</label><b id="abs-out" style="color:var(--teal)">10 %</b></div>
+      <input type="range" id="abs" min="0" max="100" step="1" value="10" style="width:100%">
+    </div>
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><label style="font-size:14px;font-weight:600">{{ t.ind_grades }}</label><b id="gd-out" style="color:var(--teal)">1.0 pts</b></div>
+      <input type="range" id="gd" min="0" max="20" step="0.5" value="3" style="width:100%">
+    </div>
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><label style="font-size:14px;font-weight:600">{{ t.ind_reports }}</label><b id="dis-out" style="color:var(--teal)">1</b></div>
+      <input type="range" id="dis" min="0" max="6" step="1" value="1" style="width:100%">
+    </div>
+
+    <div style="margin-top:26px">
+      <div style="font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:10px">{{ t.sim_breakdown }}</div>
+      <div style="display:flex;height:26px;border-radius:8px;overflow:hidden;background:#ece6d8">
+        <div id="bar-abs" style="background:#0f6e62;transition:width .15s"></div>
+        <div id="bar-gd" style="background:#d98a1f;transition:width .15s"></div>
+        <div id="bar-dis" style="background:#c2483b;transition:width .15s"></div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#0f6e62"></span>{{ t.ind_absences }} <b id="c-abs" style="color:var(--ink)">5</b></span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#d98a1f"></span>{{ t.col_score|default:"Notes" }} <b id="c-gd" style="color:var(--ink)">6</b></span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#c2483b"></span>{{ t.ind_reports }} <b id="c-dis" style="color:var(--ink)">4</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="grid" style="gap:18px">
+    <div class="card panel" style="text-align:center;animation:rise .5s ease both;animation-delay:.06s">
+      <h3 style="margin-bottom:4px">{{ t.sim_score }}</h3>
+      <div id="score" style="font-family:'Source Serif 4',serif;font-size:60px;font-weight:600;line-height:1.1">15</div>
+      <div class="muted" style="font-size:12px;margin-bottom:14px">/ 100</div>
+      <div id="band" class="badge b-low" style="font-size:14px;padding:8px 16px">{{ t.risk_low_full }}</div>
+      <div style="position:relative;height:8px;border-radius:6px;background:#ece6d8;margin-top:20px">
+        <div id="track" style="position:absolute;left:0;top:0;height:100%;border-radius:6px;background:var(--low);transition:.15s"></div>
+        <div style="position:absolute;top:-5px;width:2px;height:18px;background:#9a958a" id="mk-med"></div>
+        <div style="position:absolute;top:-5px;width:2px;height:18px;background:#9a958a" id="mk-high"></div>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:8px">{{ t.sim_thresholds }} : {{ t.sim_medium }} ≥ {{ medium }}, {{ t.sim_high }} ≥ {{ high }}</div>
+    </div>
+
+    <div class="card panel" style="animation:rise .5s ease both;animation-delay:.1s">
+      <h3 style="font-size:15px">{{ t.sim_reading }}</h3>
+      <p id="explain" class="muted" style="font-size:13px;line-height:1.6;margin-top:8px">—</p>
+      <div id="parity" style="font-size:11px;color:#3f9d6b;margin-top:12px;border-top:1px solid var(--line);padding-top:10px">{{ t.sim_verified }} ✓</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MED = {{ medium }}, HIGH = {{ high }};
+  const CASES = {{ cases_json|safe }};
+  const T = {
+    low: "{{ t.risk_low_full }}", medium: "{{ t.risk_medium_full }}", high: "{{ t.risk_high_full }}",
+    stable: "{{ t.sim_stable }}", scoreWord: "{{ t.sim_score_word }}",
+    rAbs: "{{ t.sim_reason_abs }}", rGrades: "{{ t.sim_reason_grades }}", rGradesU: "{{ t.sim_reason_grades_unit }}",
+    rReports: "{{ t.sim_reason_reports }}"
+  };
+  const $ = id => document.getElementById(id);
+
+  const preset = $('preset');
+  CASES.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.label; preset.appendChild(o); });
+  preset.addEventListener('change', () => {
+    const c = CASES.find(x => String(x.id) === preset.value);
+    if (!c) return;
+    $('abs').value = c.absences; $('gd').value = c.grade_drop; $('dis').value = c.disciplinary; update();
+  });
+
+  function band(score){ return score >= HIGH ? 'HIGH' : score >= MED ? 'MEDIUM' : 'LOW'; }
+
+  function update(){
+    const a = +$('abs').value, g = +$('gd').value, d = +$('dis').value;
+    $('abs-out').textContent = a + ' %';
+    $('gd-out').textContent = g.toFixed(1) + ' pts';
+    $('dis-out').textContent = d;
+
+    const na = Math.min(a,100), ng = g>0 ? Math.min(g/20*100,100) : 0, nb = Math.min(d/5*100,100);
+    const cAbs = na*0.5, cGd = ng*0.3, cDis = nb*0.2;
+    const score = cAbs + cGd + cDis;
+    const b = band(score);
+
+    $('score').textContent = Math.round(score);
+    $('c-abs').textContent = Math.round(cAbs);
+    $('c-gd').textContent = Math.round(cGd);
+    $('c-dis').textContent = Math.round(cDis);
+    $('bar-abs').style.width = cAbs + '%';
+    $('bar-gd').style.width = cGd + '%';
+    $('bar-dis').style.width = cDis + '%';
+
+    const colors = {LOW:['b-low',T.low,'#3f9d6b'], MEDIUM:['b-med',T.medium,'#d98a1f'], HIGH:['b-high',T.high,'#c2483b']};
+    const [cls,label,col] = colors[b];
+    const badge = $('band'); badge.className = 'badge ' + cls; badge.style.fontSize='14px'; badge.style.padding='8px 16px'; badge.textContent = label;
+    $('track').style.width = Math.min(score,100) + '%';
+    $('track').style.background = col;
+    $('mk-med').style.left = MED + '%';
+    $('mk-high').style.left = HIGH + '%';
+
+    const reasons = [];
+    if (a > 15) reasons.push(`${T.rAbs} (${a} %)`);
+    if (g >= 4) reasons.push(`${T.rGrades} ${g.toFixed(0)} ${T.rGradesU}`);
+    if (d >= 2) reasons.push(`${d} ${T.rReports}`);
+    const bandLabel = b==='HIGH'?T.high:b==='MEDIUM'?T.medium:T.low;
+    $('explain').textContent = reasons.length
+      ? `${bandLabel} (${T.scoreWord} ${Math.round(score)}/100) : ` + reasons.join(', ') + '.'
+      : T.stable;
+  }
+
+  ['abs','gd','dis'].forEach(id => $(id).addEventListener('input', update));
+  update();
+
+  // Vérification de parité avec le moteur Python (preuve d'auditabilité)
+  async function verifyServer(){
+    const a=$('abs').value, g=$('gd').value, d=$('dis').value;
+    try{
+      const r = await fetch(`{% url 'simulate_api' %}?absences=${a}&grade_drop=${g}&disciplinary=${d}`);
+      const j = await r.json();
+      const diff = Math.abs(j.score - (+$('score').textContent));
+      $('parity').textContent = diff <= 1 ? 'Calcul identique au moteur Python ✓' : 'Écart détecté avec le serveur';
+    }catch(e){ $('parity').textContent = ''; }
+  }
+  let t; ['abs','gd','dis'].forEach(id => $(id).addEventListener('change', () => { clearTimeout(t); t=setTimeout(verifyServer, 200); }));
+  verifyServer();
+</script>
+{% endblock %}

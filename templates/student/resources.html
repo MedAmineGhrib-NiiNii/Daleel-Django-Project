@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_resources }}{% endblock %}
+{% block nav_res %}active{% endblock %}
+{% block nav_resmanage %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.snav_resources }}</h1><p>{{ t.sh_res_sub }}</p></div></div>
+
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+{% if can_manage %}
+<div class="card panel" style="margin-bottom:18px">
+  <h3>{{ t.res_add_title }}</h3>
+  <p class="hint" style="margin-bottom:12px">{{ t.res_manage_hint }}</p>
+  <form method="post" action="{% url 'add_resource' %}">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px">{{ t.res_type }}</label>
+        <select name="resource_type" required style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+          <option value="BOOK">{{ t.res_type_book }}</option>
+          <option value="COURSE">{{ t.res_type_course }}</option>
+          <option value="SUMMARY">{{ t.res_type_summary }}</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px">{{ t.rep_col_title }}</label>
+        <input type="text" name="title" required style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px">{{ t.res_subject }}</label>
+        <input type="text" name="subject" required style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div>
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px">{{ t.res_desc }}</label>
+        <input type="text" name="description" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:5px">{{ t.res_url }}</label>
+        <input type="url" name="url" placeholder="https://…" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top:14px">+ {{ t.res_add_btn }}</button>
+  </form>
+</div>
+{% endif %}
+
+{% for type_label, list in items.items %}
+<div class="card panel" style="margin-bottom:16px">
+  <h3>{% if type_label == 'BOOK' %}📕 {{ t.res_books }}{% elif type_label == 'COURSE' %}📘 {{ t.res_courses }}{% else %}📝 {{ t.res_summaries }}{% endif %}</h3>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+    {% for r in list %}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:11px;padding:12px 14px">
+      <div><b style="font-size:14px">{{ r.title }}</b><div class="muted" style="font-size:13px">{{ r.subject }}{% if r.description %} — {{ r.description }}{% endif %}</div></div>
+      <div style="display:flex;gap:8px;white-space:nowrap">
+        {% if r.url %}<a href="{{ r.url }}" target="_blank" class="btn btn-ghost" style="padding:7px 12px;font-size:13px">{{ t.res_open }}</a>{% endif %}
+        {% if can_manage %}<a href="{% url 'delete_resource' r.id %}" class="btn btn-danger" style="padding:7px 12px;font-size:13px" onclick="return confirm('{{ t.res_confirm_delete }}');">{{ t.res_delete }}</a>{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty">{{ t.res_empty_cat }}</div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

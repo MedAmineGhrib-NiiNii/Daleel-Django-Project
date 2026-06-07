@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Dossier {{ case.student.code }}{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block head_extra %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}@keyframes sp{to{transform:rotate(360deg)}}</style>{% endblock %}
+
+{% block content %}
+{% if messages %}{% for message in messages %}
+  <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+{% endfor %}{% endif %}
+<div class="topbar">
+  <div>
+    <p style="margin-bottom:6px"><a href="{% url 'dashboard_home' %}" class="muted" style="font-weight:600">&larr; {{ t.case_back }}</a></p>
+    <h1>{{ t.case_file }} · {{ case.student.code }}</h1>
+    <p>{% if case.student.first_name %}{{ case.student.first_name }} {{ case.student.last_name }} — {% endif %}{{ case.student.grade_level }} · {{ case.student.school.name }}</p>
+  </div>
+  {% if case.risk_band == 'HIGH' %}<span class="badge b-high" style="font-size:13px;padding:8px 14px">{{ t.risk_high_full }}</span>
+  {% elif case.risk_band == 'MEDIUM' %}<span class="badge b-med" style="font-size:13px;padding:8px 14px">{{ t.risk_medium_full }}</span>
+  {% else %}<span class="badge b-low" style="font-size:13px;padding:8px 14px">{{ t.risk_low_full }}</span>{% endif %}
+</div>
+
+<!-- Actions -->
+<div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:rise .5s ease both">
+  <strong style="font-size:14px;color:var(--ink-soft);margin-right:4px">{{ t.actions }} :</strong>
+  {% if case.status == 'NEW' %}
+    <a href="{% url 'api_open_case' case.id %}" class="btn btn-amber">{{ t.take_charge }}</a>
+  {% endif %}
+  {% if case.status != 'CLOSED' %}
+    <form action="{% url 'api_schedule_intervention' case.id %}" method="POST" style="display:flex;gap:8px;align-items:center;margin:0">
+      {% csrf_token %}
+      <input type="date" name="date" required style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8">
+      <button type="submit" class="btn btn-primary">{{ t.schedule_rdv }}</button>
+    </form>
+    <a href="{% url 'api_close_case' case.id %}" class="btn btn-danger" style="margin-left:auto" onclick="return confirm('{{ t.confirm_close }}');">{{ t.close_case }}</a>
+  {% else %}
+    <span class="badge b-stat" style="margin-left:auto;font-size:13px;padding:8px 14px">{{ t.case_closed }}</span>
+  {% endif %}
+</div>
+
+<!-- Progression du dossier (machine à états) -->
+<div class="card panel" style="margin-bottom:18px;animation:rise .5s ease both;animation-delay:.04s">
+  <h3 style="margin-bottom:16px">{{ t.progression }}</h3>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">
+    {% for step in steps %}
+    <div style="flex:1;text-align:center;z-index:1">
+      <div style="width:32px;height:32px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-size:13px;font-weight:700;
+        {% if step.done %}background:var(--teal);color:#fff{% elif step.current %}background:var(--amber);color:#3d2a06;box-shadow:0 0 0 4px var(--amber-soft){% else %}background:#ece6d8;color:#9a958a{% endif %}">
+        {% if step.done %}✓{% else %}{{ forloop.counter }}{% endif %}
+      </div>
+      <div style="font-size:12px;font-weight:600;{% if step.current %}color:var(--ink){% else %}color:var(--ink-soft){% endif %}">{{ step.label }}</div>
+    </div>
+    {% if not forloop.last %}<div style="flex:1;height:2px;background:{% if step.done %}var(--teal){% else %}#ece6d8{% endif %};margin-top:15px"></div>{% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:340px 1fr;align-items:start">
+  <!-- Left column -->
+  <div class="grid" style="gap:18px">
+    <div class="card panel" style="text-align:center">
+      <h3 style="margin-bottom:16px">{{ t.risk_score }}</h3>
+      <div style="position:relative;height:170px"><canvas id="gauge"></canvas>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;top:18px">
+          <span style="font-family:'Source Serif 4',serif;font-size:46px;font-weight:600;line-height:1">{{ case.risk_score|default:"0" }}</span>
+          <span class="muted" style="font-size:12px">/ 100</span>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:8px;font-size:13px">{{ case.risk_explanation }}</p>
+
+      <!-- Tendance + trajectoire (alerte précoce) -->
+      <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600">Tendance du risque</span>
+          {% if trend.direction == 'up' %}<span class="badge b-high">▲ En hausse (+{{ trend.delta }})</span>
+          {% elif trend.direction == 'down' %}<span class="badge b-low">▼ En baisse ({{ trend.delta }})</span>
+          {% else %}<span class="badge b-stat">→ Stable</span>{% endif %}
+        </div>
+        <div style="height:120px"><canvas id="trajectory"></canvas></div>
+      </div>
+
+      <!-- Rapport PDF -->
+      <a href="{% url 'generate_report' case.id %}" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:14px">📄 {{ t.rep_generate }}</a>
+    </div>
+
+    <div class="card panel">
+      <h3>{{ t.indicators }}</h3>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span class="muted">{{ t.ind_absences }}</span><b>{{ case.student.absences_percentage }}%</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span class="muted">{{ t.ind_grades }}</span><b>{{ case.student.grade_drop }} pts</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span class="muted">{{ t.ind_reports }}</span><b>{{ case.student.disciplinary_reports }}</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;border-top:1px solid var(--line);padding-top:11px">
+          <span class="muted">{{ t.data_reliability }}</span>
+          <span class="badge {% if case.data_completeness == 3 %}b-low{% elif case.data_completeness == 2 %}b-med{% else %}b-high{% endif %}">{{ case.data_completeness }}/3 {{ t.indicators_filled }}</span>
+        </div>
+        {% if case.data_completeness < 3 %}<div class="muted" style="font-size:12px;color:var(--med)">{{ t.data_partial_warn }}</div>{% endif %}
+        <div style="display:flex;justify-content:space-between;font-size:14px;border-top:1px solid var(--line);padding-top:11px"><span class="muted">{{ t.col_status }}</span><span class="badge b-stat">{{ case.get_status_display }}</span></div>
+      </div>
+    </div>
+
+    <div class="card panel" style="border:1px solid #d9e9e3;background:#f4fbf8">
+      <h3>{{ t.ai_assistant }}</h3>
+      <p class="hint">{{ t.ai_hint }}</p>
+      <a href="{% url 'generate_ai_plan' case.id %}" class="btn btn-primary" id="ai-btn" style="width:100%;justify-content:center"
+         onclick="this.innerHTML='<span class=&quot;spin&quot;></span> {{ t.ai_loading }}';this.style.pointerEvents='none';this.style.opacity='.75';">{{ t.ai_generate }}</a>
+      {% if ai_result %}
+        {% if ai_result.success %}
+          <div class="alert alert-success" style="margin-top:14px;text-align:left">{{ ai_result.suggestion }}
+            <div class="muted" style="margin-top:10px;border-top:1px solid #bfe0cc;padding-top:8px;font-size:12px"><b>{{ t.ai_source }} :</b> {{ ai_result.source }}</div></div>
+          <p class="hint" style="margin-top:12px">{{ t.ai_decision_hint }}</p>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <a href="{% url 'api_ai_decision' case.id 'validate' %}" class="btn btn-primary" style="flex:1;justify-content:center;padding:9px">{{ t.ai_validate }}</a>
+            <a href="{% url 'api_ai_decision' case.id 'reject' %}" class="btn btn-danger" style="flex:1;justify-content:center;padding:9px">{{ t.ai_reject }}</a>
+          </div>
+        {% else %}
+          <div class="alert alert-danger" style="margin-top:14px;text-align:left">{{ ai_result.suggestion }}<br><small>{{ ai_result.error_detail }}</small></div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right column: appointments + timeline -->
+  <div class="grid" style="gap:18px">
+
+  <!-- Rendez-vous / Interventions (Scénario 2) -->
+  <div class="card" style="animation:rise .5s ease both;animation-delay:.06s">
+    <div class="panel-head"><h3>{{ t.appointments }}</h3><span class="muted">Scénario 2</span></div>
+    <div style="padding:6px 22px 18px">
+      {% for appt in appointments %}
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;{% if not forloop.last %}border-bottom:1px solid var(--surface-2){% endif %}">
+        <div style="flex:1">
+          <b style="font-size:14px">{{ appt.date|date:"d M Y" }}</b>
+          {% if appt.status == 'SCHEDULED' %}<span class="badge b-stat" style="margin-left:8px">{{ t.appt_scheduled }}</span>
+          {% elif appt.status == 'ATTENDED' %}<span class="badge b-low" style="margin-left:8px">{{ t.appt_attended }}</span>
+          {% elif appt.status == 'MISSED' %}<span class="badge b-high" style="margin-left:8px">{{ t.appt_missed }}</span>
+          {% else %}<span class="badge b-stat" style="margin-left:8px">{{ t.appt_cancelled }}</span>{% endif %}
+          {% if appt.notes %}<div class="muted" style="font-size:12px;margin-top:3px">{{ appt.notes }}</div>{% endif %}
+        </div>
+        {% if appt.status == 'SCHEDULED' %}
+        <a href="{% url 'api_update_appointment' appt.id 'ATTENDED' %}" class="btn btn-ghost" style="padding:7px 12px;font-size:13px">{{ t.appt_attended }}</a>
+        <a href="{% url 'api_update_appointment' appt.id 'MISSED' %}" class="btn btn-danger" style="padding:7px 12px;font-size:13px">{{ t.appt_missed }}</a>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="empty" style="padding:24px">{{ t.appt_empty }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="card" style="animation:rise .5s ease both;animation-delay:.08s">
+    <div class="panel-head"><h3>{{ t.timeline }}</h3><span class="muted">{{ t.full_traceability }}</span></div>
+    <div style="padding:8px 24px 22px">
+      {% for event in events %}
+      <div style="display:flex;gap:14px;padding:14px 0;{% if not forloop.last %}border-bottom:1px solid var(--surface-2){% endif %}">
+        <div style="flex-shrink:0;width:11px;height:11px;border-radius:50%;margin-top:4px;background:{% if event.result == 'DENIED' %}var(--high){% else %}var(--teal){% endif %}"></div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <b style="font-size:14px">{{ event.action }}</b>
+            <span class="muted" style="font-size:12px">{{ event.timestamp|date:"d M Y, H:i" }}</span>
+          </div>
+          <div class="muted" style="font-size:13px;margin-top:2px">{{ t.by_actor }} {{ event.actor|default:t.system_actor }}</div>
+          <div style="font-size:13px;margin-top:4px;color:{% if event.result == 'DENIED' %}var(--high){% else %}#3f9d6b{% endif %}">{{ event.reason }}</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty">{{ t.timeline_empty }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const score = Number("{{ case.risk_score|default:'0' }}");
+  const col = score>=60?'#c2483b':score>=30?'#d98a1f':'#3f9d6b';
+  new Chart(document.getElementById('gauge'),{
+    type:'doughnut',
+    data:{datasets:[{data:[score,Math.max(100-score,0)],backgroundColor:[col,'#ece6d8'],borderWidth:0}]},
+    options:{rotation:-90,circumference:180,cutout:'78%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+  });
+
+  // Trajectoire du risque dans le temps
+  const traj = {{ trajectory|safe }};
+  if (traj.scores && traj.scores.length) {
+    new Chart(document.getElementById('trajectory'), {
+      type:'line',
+      data:{ labels:traj.labels, datasets:[{ data:traj.scores, borderColor:'#0f6e62',
+        backgroundColor:'rgba(15,110,98,.1)', fill:true, tension:.3, pointRadius:3,
+        pointBackgroundColor:'#0f6e62' }]},
+      options:{ plugins:{legend:{display:false}},
+        scales:{ y:{min:0,max:100,ticks:{stepSize:50,font:{size:10}}}, x:{ticks:{font:{size:10}}} } }
+    });
+  }
+</script>
+{% endblock %}

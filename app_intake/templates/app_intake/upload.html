@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Importer des données{% endblock %}
+{% block nav_intake %}active{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>{{ t.intake_title }}</h1>
+    <p>{{ t.intake_sub }}</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid" style="grid-template-columns:1.3fr 1fr;align-items:start">
+  <div class="card panel" style="animation:rise .5s ease both">
+    <h3>{{ t.intake_file }}</h3>
+    <p class="hint">{{ t.intake_ext }}</p>
+    <form method="post" enctype="multipart/form-data" id="up">
+      {% csrf_token %}
+      <label for="csv_file" id="drop" style="display:block;border:2px dashed var(--line);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface-2)">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" style="margin-bottom:10px"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <div style="font-weight:600;font-size:15px">{{ t.intake_click }}</div>
+        <div class="muted" style="font-size:13px;margin-top:4px" id="fname">{{ t.intake_drop }}</div>
+        <input type="file" id="csv_file" name="csv_file" accept=".csv" required style="display:none">
+      </label>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:18px">{{ t.intake_launch }}</button>
+    </form>
+  </div>
+
+  <div class="card panel" style="animation:rise .5s ease both;animation-delay:.08s">
+    <h3>{{ t.intake_format }}</h3>
+    <p class="hint">{{ t.intake_format_sub }}</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;margin-top:6px">
+      <li><b>student_code</b></li>
+      <li>first_name, last_name, age, grade_level, governorate</li>
+      <li><b>absences_percentage</b> <span class="muted">(0–100)</span></li>
+      <li><b>grade_drop</b> <span class="muted">(points perdus, 0–5)</span></li>
+      <li><b>disciplinary_reports</b> <span class="muted">(nombre)</span></li>
+    </ul>
+    <div class="muted" style="font-size:12px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px">Un fichier d'exemple <code>test_classe.csv</code> est fourni à la racine du projet.</div>
+  </div>
+</div>
+
+<script>
+  const inp=document.getElementById('csv_file'),drop=document.getElementById('drop'),fn=document.getElementById('fname');
+  inp.addEventListener('change',()=>{if(inp.files[0]){fn.textContent=inp.files[0].name;drop.style.borderColor='var(--teal)';drop.style.background='var(--teal-soft)';}});
+  ['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.style.borderColor='var(--teal)';}));
+  drop.addEventListener('drop',ev=>{ev.preventDefault();inp.files=ev.dataTransfer.files;inp.dispatchEvent(new Event('change'));});
+</script>
+{% endblock %}

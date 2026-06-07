@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="{{ LANG }}"{% if RTL %} dir="rtl"{% endif %}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t.register_link }} · Amal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Public+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#15302b;--ink-soft:#5a6b66;--teal:#0f6e62;--teal-dark:#0b5249;--amber:#e0992f;--cream:#f7f3ea;--line:#e7e0d4;--surface:#fffdf8;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Public Sans',sans-serif;color:var(--ink);background:var(--cream);
+      background-image:radial-gradient(circle at 1px 1px,rgba(21,48,43,.05) 1px,transparent 0);background-size:22px 22px;
+      min-height:100vh;display:grid;place-items:center;padding:30px}
+    [dir="rtl"] body,[dir="rtl"] input,[dir="rtl"] textarea,[dir="rtl"] select{font-family:'Noto Naskh Arabic','Public Sans',sans-serif}
+    h1,h2{font-family:'Source Serif 4',Georgia,serif}
+    [dir="rtl"] h1,[dir="rtl"] h2{font-family:'Noto Naskh Arabic','Source Serif 4',serif}
+    .card{width:100%;max-width:540px;background:var(--surface);border:1px solid var(--line);border-radius:20px;
+      padding:36px 38px;box-shadow:0 8px 30px rgba(21,48,43,.07)}
+    .brand{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+    .mark{width:40px;height:40px;border-radius:11px;background:var(--amber);display:grid;place-items:center;
+      font-family:'Source Serif 4',serif;font-weight:700;color:var(--teal-dark);font-size:20px}
+    h1{font-size:24px;font-weight:600;margin-bottom:4px}
+    .lede{color:var(--ink-soft);font-size:14px;margin-bottom:22px}
+    label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;margin-top:14px}
+    input,select,textarea{width:100%;font-family:inherit;font-size:15px;padding:11px 13px;border:1px solid var(--line);
+      border-radius:11px;background:#fff;color:var(--ink)}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 4px rgba(15,110,98,.12)}
+    textarea{min-height:80px;resize:vertical}
+    .hint{font-size:12px;color:var(--ink-soft);margin-top:5px}
+    .btn{width:100%;font-family:inherit;font-size:15px;font-weight:600;padding:13px;border:none;border-radius:12px;
+      background:var(--teal);color:#fff;cursor:pointer;margin-top:22px}
+    .btn:hover{background:var(--teal-dark)}
+    .err{background:#f8e3df;border:1px solid #eecabf;color:#a23a2e;font-size:13px;padding:11px 14px;border-radius:11px;margin-bottom:16px}
+    .back{display:block;text-align:center;margin-top:16px;font-size:13px;font-weight:600;color:var(--teal);text-decoration:none}
+    .note{background:#f4fbf8;border:1px solid #d9e9e3;border-radius:12px;padding:12px 14px;font-size:12px;color:var(--ink-soft);margin-top:16px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand"><div class="mark">أ</div><b style="font-family:'Source Serif 4',serif;font-size:20px">Amal</b></div>
+    <h1>{{ t.register_link }}</h1>
+    <p class="lede">Votre demande sera examinée et validée par le Directeur avant l'activation du compte.</p>
+
+    {% if messages %}{% for m in messages %}<div class="err">{{ m }}</div>{% endfor %}{% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label for="full_name">Nom complet</label>
+      <input type="text" id="full_name" name="full_name" required>
+
+      <label for="role">Je suis</label>
+      <select id="role" name="role" required onchange="document.getElementById('code-wrap').style.display = this.value==='Student' ? 'block':'none';">
+        {% for code, label in roles %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+
+      <div id="code-wrap" style="display:block">
+        <label for="student_code">Code élève (dossier)</label>
+        <input type="text" id="student_code" name="student_code" placeholder="ex. ST-2026-0001">
+        <div class="hint">Pour les élèves : permet de relier vos auto-évaluations à votre conseiller.</div>
+      </div>
+
+      <label for="username">Identifiant souhaité</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="biography">Présentation / biographie</label>
+      <textarea id="biography" name="biography" required placeholder="Quelques phrases sur qui vous êtes et pourquoi vous demandez un accès (min. 20 caractères)."></textarea>
+
+      <label for="document">Document justificatif</label>
+      <input type="file" id="document" name="document" accept=".pdf,.jpg,.jpeg,.png,.docx">
+      <div class="hint">Pièce de vérification (CV, attestation…). Pour la démo : un document synthétique suffit — n'envoyez pas de document personnel réel.</div>
+
+      <button type="submit" class="btn">Envoyer ma demande</button>
+    </form>
+    <div class="note">Vérification anti-bot : chaque demande est contrôlée manuellement par le Directeur. Aucun compte n'est actif sans cette validation.</div>
+    <a class="back" href="{% url 'login' %}">{{ t.have_account }}</a>
+  </div>
+</body>
+</html>

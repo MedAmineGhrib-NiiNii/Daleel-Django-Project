@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Métriques{% endblock %}
+{% block nav_metrics %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.metrics_title }}</h1><p>{{ t.metrics_sub }}</p></div></div>
+
+<div class="grid kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+  <div class="card kpi accent"><div class="lbl">{{ t.m_completion }}</div><div class="val">{{ workflow_completion }}%</div><div class="sub">{{ t.m_completion_sub }}</div></div>
+  <div class="card kpi accent"><div class="lbl">{{ t.m_closed }}</div><div class="val">{{ closed_rate }}%</div><div class="sub">{{ t.m_closed_sub }}</div></div>
+  <div class="card kpi warn"><div class="lbl">{{ t.m_reliability }}</div><div class="val">{{ data_reliability }}%</div><div class="sub">{{ t.m_reliability_sub }}</div></div>
+  <div class="card kpi warn"><div class="lbl">{{ t.m_blocked }}</div><div class="val">{{ security_blocked }}</div><div class="sub">{{ t.m_blocked_sub }}</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
+  <div class="card panel">
+    <h3>{{ t.m_operational }}</h3>
+    <table style="margin-top:10px">
+      <tbody>
+        <tr><td>{{ t.m_cases_tracked }}</td><td style="text-align:right"><b>{{ total }}</b></td></tr>
+        <tr><td>{{ t.m_workflow }}</td><td style="text-align:right"><b>{{ workflow_completion }}%</b></td></tr>
+        <tr><td>{{ t.m_events }}</td><td style="text-align:right"><b>{{ events }}</b></td></tr>
+        <tr><td>{{ t.m_unauth }}</td><td style="text-align:right"><b>{{ denied }}</b></td></tr>
+        <tr><td>{{ t.m_reports_gen }}</td><td style="text-align:right"><b>{{ reports }}</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card panel">
+    <h3>{{ t.m_model_quality }}</h3>
+    {% if model %}
+    <table style="margin-top:10px">
+      <tbody>
+        <tr><td>{{ t.m_auc }}</td><td style="text-align:right"><b>{{ model.auc }}</b></td></tr>
+        <tr><td>{{ t.m_precision_full }}</td><td style="text-align:right"><b>{{ model.precision }}</b></td></tr>
+        <tr><td>{{ t.m_recall_full }}</td><td style="text-align:right"><b>{{ model.recall }}</b></td></tr>
+        <tr><td>{{ t.m_accuracy }}</td><td style="text-align:right"><b>{{ model.accuracy }}</b></td></tr>
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty" style="margin-top:10px">{{ t.m_run }} <code>python manage.py train_model</code>.</div>
+    {% endif %}
+
+    <h3 style="margin-top:20px">{{ t.m_audit_integrity }}</h3>
+    <div style="margin-top:10px;padding:14px;border-radius:12px;{% if chain_ok %}background:var(--low-bg);color:var(--low){% else %}background:var(--high-bg);color:var(--high){% endif %}">
+      {% if chain_ok %}✓ {{ t.m_chain_ok }} {{ events }} {{ t.m_entries }}
+      {% else %}✗ {{ broken }} {{ t.m_chain_broken_pre }}{% endif %}
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">{{ t.m_offline_verify }} <code>python manage.py verify_audit</code></p>
+  </div>
+</div>
+{% endblock %}

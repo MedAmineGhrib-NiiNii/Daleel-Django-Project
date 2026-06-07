@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ counterpart }}{% endblock %}
+{% block nav_messages %}active{% endblock %}
+{% block nav_smessages %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div>
+  <a href="{% url 'my_messages' %}" class="muted" style="font-size:13px;text-decoration:none">&larr; {{ t.msg_title }}</a>
+  <h1 style="margin-top:6px">{{ counterpart }}</h1>
+</div></div>
+{% if messages %}{% for m in messages %}<div class="alert {% if m.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+<div class="card panel" style="margin-bottom:14px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto">
+    {% for msg in messages_list %}
+    <div style="align-self:{% if msg.sender_id == me_id %}flex-end{% else %}flex-start{% endif %};max-width:75%">
+      <div style="background:{% if msg.sender_id == me_id %}var(--teal);color:#fff{% else %}var(--cream);color:var(--ink){% endif %};border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:14px;line-height:1.5;white-space:pre-wrap">{{ msg.body }}</div>
+      <div class="muted" style="font-size:11px;margin-top:3px;{% if msg.sender_id == me_id %}text-align:right{% endif %}">{{ msg.created_at|date:"d M, H:i" }}</div>
+    </div>
+    {% empty %}
+    <div class="empty">{{ t.msg_start_hint }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if can_send %}
+<div class="card panel">
+  <form method="post" action="{{ post_url }}">
+    {% csrf_token %}
+    <textarea name="body" rows="3" required placeholder="{{ t.msg_placeholder }}" style="width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical"></textarea>
+    <button type="submit" class="btn btn-primary" style="margin-top:10px">{{ t.msg_send }}</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

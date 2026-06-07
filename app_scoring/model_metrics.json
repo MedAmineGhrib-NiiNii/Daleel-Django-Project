@@ -1,0 +1,27 @@
+{
+  "n_total": 1200,
+  "n_train": 900,
+  "n_test": 300,
+  "auc": 0.85,
+  "accuracy": 0.797,
+  "precision": 0.849,
+  "recall": 0.869,
+  "f1": 0.858,
+  "confusion": {
+    "TP": 185,
+    "FP": 33,
+    "TN": 54,
+    "FN": 28
+  },
+  "learned_importance": {
+    "absences": 52,
+    "grades": 28,
+    "discipline": 21
+  },
+  "configured_weights": {
+    "absences": 50,
+    "grades": 30,
+    "discipline": 20
+  },
+  "threshold": 0.5
+}

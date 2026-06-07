@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_teachers }}{% endblock %}
+{% block nav_teachers %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.snav_teachers }}</h1><p>{{ t.sh_teachers_sub }}</p></div></div>
+<div style="display:flex;flex-direction:column;gap:12px">
+  {% for tch in teachers %}
+  <div class="card panel" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:16px;font-weight:600">{{ tch.name }}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        {% for s in tch.subjects %}<span class="badge b-stat">{{ s }}</span>{% empty %}<span class="muted" style="font-size:13px">{{ t.tch_no_subject }}</span>{% endfor %}
+      </div>
+    </div>
+    {% if IS_STUDENT %}
+    <a href="{% url 'contact_teacher' tch.username %}" class="btn btn-primary">{{ t.tch_contact }}</a>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div class="card panel"><div class="empty">{{ t.tch_empty }}</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

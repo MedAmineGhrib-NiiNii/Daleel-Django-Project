@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ t.cons_title }}{% endblock %}
+{% block nav_counselors %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.cons_title }}</h1><p>{{ t.cons_sub }}</p></div></div>
+<div style="display:flex;flex-direction:column;gap:12px">
+  {% for c in counselors %}
+  <div class="card panel" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+    <div><div style="font-size:16px;font-weight:600">{{ c.name }}</div><div class="muted" style="font-size:13px;margin-top:4px">{{ t.cons_role }}</div></div>
+    <a href="{% url 'contact_counselor' c.username %}" class="btn btn-primary">{{ t.tch_contact }}</a>
+  </div>
+  {% empty %}
+  <div class="card panel"><div class="empty">{{ t.cons_empty }}</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

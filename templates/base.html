@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="{{ LANG }}"{% if RTL %} dir="rtl"{% endif %}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Amal{% endblock %} · Amal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Public+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    [dir="rtl"] body{font-family:'Noto Naskh Arabic','Public Sans',sans-serif}
+    [dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .display{font-family:'Noto Naskh Arabic','Source Serif 4',serif}
+    [dir="rtl"] .kpi .val{direction:ltr}
+    .langswitch{display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,.06);padding:4px;border-radius:10px}
+    .langswitch a{flex:1;text-align:center;font-size:12px;font-weight:600;color:#9ec7bd;padding:6px 4px;border-radius:7px;transition:.15s}
+    .langswitch a:hover{color:#fff}
+    .langswitch a.on{background:var(--amber);color:var(--teal-dark)}
+  </style>
+  <style>
+    :root{
+      --ink:#15302b; --ink-soft:#5a6b66; --line:#e7e0d4;
+      --cream:#f7f3ea; --surface:#fffdf8; --surface-2:#fbf7ee;
+      --teal:#0f6e62; --teal-dark:#0b5249; --teal-soft:#e3efea;
+      --amber:#e0992f; --amber-soft:#fbeed4;
+      --low:#3f9d6b; --low-bg:#e6f3ec;
+      --med:#d98a1f; --med-bg:#fbeed4;
+      --high:#c2483b; --high-bg:#f8e3df;
+      --shadow:0 1px 2px rgba(21,48,43,.04),0 8px 24px rgba(21,48,43,.06);
+      --radius:18px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Public Sans',sans-serif;color:var(--ink);
+      background:var(--cream);
+      background-image:radial-gradient(circle at 1px 1px, rgba(21,48,43,.04) 1px, transparent 0);
+      background-size:22px 22px;
+      min-height:100vh;display:flex;
+    }
+    a{color:inherit;text-decoration:none}
+    h1,h2,h3,.display{font-family:'Source Serif 4',serif;letter-spacing:-.01em}
+
+    /* Sidebar */
+    .sidebar{
+      width:248px;flex-shrink:0;background:var(--teal-dark);color:#def0ea;
+      padding:26px 18px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;
+    }
+    .brand{flex-shrink:0;display:flex;align-items:center;gap:11px;padding:0 8px 22px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .brand .mark{width:38px;height:38px;border-radius:11px;background:var(--amber);
+      display:grid;place-items:center;font-family:'Source Serif 4',serif;font-weight:700;color:var(--teal-dark);font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+    .brand b{font-family:'Source Serif 4',serif;font-size:21px;color:#fff;display:block;line-height:1}
+    .brand span{font-size:11px;color:#9ec7bd;letter-spacing:.04em}
+    .nav{display:flex;flex-direction:column;gap:4px;margin-top:8px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden}
+    .nav::-webkit-scrollbar{width:6px}
+    .nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+    .nav a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;font-size:14px;font-weight:500;color:#bfe0d7;transition:.15s}
+    .nav a svg{width:18px;height:18px;opacity:.85}
+    .nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+    .nav a.active{background:var(--teal);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+    .side-foot{flex-shrink:0;margin-top:12px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+    .user{display:flex;align-items:center;gap:10px;padding:6px 8px}
+    .user .av{width:34px;height:34px;border-radius:50%;background:var(--amber);color:var(--teal-dark);display:grid;place-items:center;font-weight:700;font-size:14px}
+    .user small{display:block;color:#9ec7bd;font-size:11px}
+    .user b{font-size:13px;color:#fff}
+    .logout{display:block;text-align:center;margin-top:12px;font-size:13px;font-weight:600;color:#bfe0d7;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent}
+    .logout:hover{background:rgba(255,255,255,.07);color:#fff}
+
+    /* Main */
+    .main{flex:1;min-width:0;padding:34px 40px 56px;max-width:1280px}
+    .topbar{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:30px;animation:rise .5s ease both}
+    .topbar h1{font-size:30px;font-weight:600}
+    .topbar p{color:var(--ink-soft);font-size:14px;margin-top:4px}
+    .pill{background:var(--amber-soft);color:#9a6a12;font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid #f1dcb0}
+
+    /* Cards */
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .grid{display:grid;gap:18px}
+    .kpis{grid-template-columns:repeat(3,1fr);margin-bottom:18px}
+    .kpi{padding:22px 22px 20px;position:relative;overflow:hidden;animation:rise .5s ease both}
+    .kpi:nth-child(2){animation-delay:.06s}.kpi:nth-child(3){animation-delay:.12s}
+    .kpi .lbl{font-size:13px;color:var(--ink-soft);font-weight:600;display:flex;align-items:center;gap:8px}
+    .kpi .ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+    .kpi .val{font-family:'Source Serif 4',serif;font-size:42px;font-weight:600;line-height:1.1;margin-top:12px}
+    .kpi .sub{font-size:12px;color:var(--ink-soft);margin-top:2px}
+    .kpi.accent .ico{background:var(--teal-soft);color:var(--teal)}
+    .kpi.warn .ico{background:var(--med-bg);color:var(--med)}
+    .kpi.danger .ico{background:var(--high-bg);color:var(--high)}
+    .kpi.danger .val{color:var(--high)}
+
+    .charts{grid-template-columns:1.1fr 1fr 1fr;margin-bottom:18px}
+    .panel{padding:20px 22px;animation:rise .5s ease both;animation-delay:.12s}
+    .panel h3{font-size:16px;font-weight:600;margin-bottom:2px}
+    .panel .hint{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+    .chart-wrap{position:relative;height:200px}
+
+    /* Table */
+    .panel-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 14px}
+    .panel-head h3{font-size:17px;font-weight:600}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:700;padding:10px 22px;border-bottom:1px solid var(--line)}
+    tbody td{padding:14px 22px;border-bottom:1px solid var(--surface-2)}
+    tbody tr{transition:.12s}
+    tbody tr:hover{background:var(--surface-2)}
+    tbody tr:last-child td{border-bottom:none}
+    .code-link{font-weight:700;color:var(--teal)}
+    .muted{color:var(--ink-soft);font-size:13px}
+
+    .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px}
+    .badge::before{content:"";width:7px;height:7px;border-radius:50%}
+    .b-low{background:var(--low-bg);color:var(--low)} .b-low::before{background:var(--low)}
+    .b-med{background:var(--med-bg);color:var(--med)} .b-med::before{background:var(--med)}
+    .b-high{background:var(--high-bg);color:var(--high)} .b-high::before{background:var(--high)}
+    .b-stat{background:#eef0ed;color:#56635d} .b-stat::before{background:#8a968f}
+
+    .btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:14px;font-weight:600;
+      padding:10px 18px;border-radius:11px;border:1px solid transparent;cursor:pointer;transition:.15s}
+    .btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-dark)}
+    .btn-amber{background:var(--amber);color:#3d2a06}.btn-amber:hover{filter:brightness(.96)}
+    .btn-ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}.btn-ghost:hover{background:var(--surface-2)}
+    .btn-danger{background:var(--high-bg);color:var(--high);border-color:#eecabf}.btn-danger:hover{background:#f5d8d1}
+
+    .alert{padding:13px 16px;border-radius:12px;font-size:14px;margin-bottom:14px;border:1px solid}
+    .alert-success{background:var(--low-bg);border-color:#bfe0cc;color:#256846}
+    .alert-error,.alert-danger{background:var(--high-bg);border-color:#eecabf;color:#a23a2e}
+
+    .empty{text-align:center;padding:40px 20px;color:var(--ink-soft)}
+
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    @media(max-width:1080px){.charts{grid-template-columns:1fr 1fr}.charts .panel:first-child{grid-column:1/-1}}
+    @media(max-width:860px){
+      body{flex-direction:column}.sidebar{width:100%;height:auto;position:static;flex-direction:row;align-items:center;padding:14px 16px;flex-wrap:wrap}
+      .brand{border:none;padding:0;margin:0}.nav{flex-direction:row;margin:0 0 0 auto}.nav a span{display:none}.side-foot{display:none}
+      .main{padding:22px 18px 40px}.kpis,.charts{grid-template-columns:1fr}
+    }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  {% block sidebar %}
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">أ</div>
+      <div><b>Amal</b><span>{{ t.brand_tagline }}</span></div>
+    </div>
+    <nav class="nav">
+      {% if IS_STUDENT %}
+      <a href="{% url 'student_home' %}" class="{% block nav_shome %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>{{ t.snav_home }}</span>
+      </a>
+      <a href="{% url 'self_assessment' %}" class="{% block nav_assess %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span>{{ t.snav_assess }}</span>
+      </a>
+      <a href="{% url 'study_chat' %}" class="{% block nav_chat %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>{{ t.snav_chat }}</span>
+      </a>
+      <a href="{% url 'resources' %}" class="{% block nav_res %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>{{ t.snav_resources }}</span>
+      </a>
+      <a href="{% url 'counselors_list' %}" class="{% block nav_counselors %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-3-3.87"/><path d="M4 21v-2a4 4 0 013-3.87"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>{{ t.cons_title }}</span>
+      </a>
+      <a href="{% url 'my_messages' %}" class="{% block nav_smessages %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>{{ t.msg_title }}</span>
+      </a>
+      <a href="{% url 'teachers_list' %}" class="{% block nav_teachers %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+        <span>{{ t.snav_teachers }}</span>
+      </a>
+      {% else %}
+      <a href="{% url 'dashboard_home' %}" class="{% block nav_dash %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>{{ t.nav_dashboard }}</span>
+      </a>
+      <a href="{% url 'case_list' %}" class="{% block nav_cases %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>{{ t.nav_cases }}</span>
+      </a>
+      <a href="{% url 'risk_simulator' %}" class="{% block nav_sim %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span>{{ t.nav_simulator }}</span>
+      </a>
+      <a href="{% url 'assessments_inbox' %}" class="{% block nav_inbox %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+        <span>{{ t.snav_inbox }}</span>
+      </a>
+      <a href="{% url 'upload_csv' %}" class="{% block nav_intake %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <span>{{ t.nav_intake }}</span>
+      </a>
+      {% if IS_TEACHER or IS_COUNSELOR %}
+      <a href="{% url 'my_messages' %}" class="{% block nav_messages %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>{{ t.msg_title }}</span>
+      </a>
+      {% endif %}
+      {% if IS_TEACHER %}
+      <a href="{% url 'teacher_profile_edit' %}" class="{% block nav_tprofile %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0114 0v1"/></svg>
+        <span>{{ t.tp_nav }}</span>
+      </a>
+      {% endif %}
+      {% if CAN_MANAGE_RESOURCES %}<a href="{% url 'resources' %}" class="{% block nav_resmanage %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>{{ t.snav_resources }}</span>
+      </a>{% endif %}
+      <a href="{% url 'report_history' %}" class="{% block nav_reports %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>{{ t.nav_reports }}</span>
+      </a>
+      <a href="{% url 'export_cases_csv' %}" class="{% block nav_export %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12m0 0l4-4m-4 4l-4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <span>{{ t.nav_export }}</span>
+      </a>
+      {% if IS_DIRECTOR %}
+      <a href="{% url 'access_requests' %}" class="{% block nav_access %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        <span>{{ t.snav_access }}</span>
+      </a>
+      {% endif %}
+      <a href="{% url 'metrics_dashboard' %}" class="{% block nav_metrics %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>{{ t.nav_metrics }}</span>
+      </a>
+      <a href="{% url 'model_evaluation' %}" class="{% block nav_eval %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+        <span>{{ t.nav_eval }}</span>
+      </a>
+      <a href="{% url 'scoring_config' %}" class="{% block nav_config %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>{{ t.nav_config }}</span>
+      </a>
+      {% endif %}
+    </nav>
+    <div class="side-foot">
+      <div class="langswitch">
+        {% for code, label in LANGUAGES %}<a href="{% url 'set_language' %}?lang={{ code }}" class="{% if LANG == code %}on{% endif %}">{{ code|upper }}</a>{% endfor %}
+      </div>
+      <div class="user">
+        <div class="av">{{ user.username|first|upper|default:"?" }}</div>
+        <div><b>{{ user.username|default:t.guest }}</b>
+          <small>{% if user.is_superuser %}{{ t.role_admin }}{% else %}{% for g in user.groups.all %}{{ g.name }}{% empty %}{{ t.role_user }}{% endfor %}{% endif %}</small></div>
+      </div>
+      <form action="{% url 'logout' %}" method="post" style="margin:0">{% csrf_token %}
+        <button type="submit" class="logout" style="width:100%;font-family:inherit;cursor:pointer">{{ t.logout }}</button>
+      </form>
+    </div>
+  </aside>
+  {% endblock %}
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

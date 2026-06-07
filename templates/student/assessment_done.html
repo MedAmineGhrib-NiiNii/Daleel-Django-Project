@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_assess }}{% endblock %}
+{% block nav_assess %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.ad_thanks }} 🌱</h1><p>{{ t.ad_sent }}</p></div></div>
+<div class="card panel" style="text-align:center;max-width:480px">
+  <div style="font-family:'Source Serif 4',serif;font-size:52px;font-weight:600">{{ score }}<span class="muted" style="font-size:20px">/100</span></div>
+  <div style="margin:10px 0 16px">
+    {% if band == 'OK' %}<span class="badge b-low" style="font-size:14px;padding:8px 16px">{{ t.ad_good }}</span>
+    {% elif band == 'ATTENTION' %}<span class="badge b-med" style="font-size:14px;padding:8px 16px">{{ t.ad_watch }}</span>
+    {% else %}<span class="badge b-high" style="font-size:14px;padding:8px 16px">{{ t.ad_help }}</span>{% endif %}
+  </div>
+  <p class="muted" style="font-size:14px">{{ t.ad_note }}</p>
+  <a href="{% url 'student_home' %}" class="btn btn-primary" style="margin-top:18px">{{ t.ad_back }}</a>
+</div>
+{% endblock %}

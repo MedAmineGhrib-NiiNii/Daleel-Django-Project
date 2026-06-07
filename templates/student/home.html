@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ t.snav_home }}{% endblock %}
+{% block nav_shome %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>Bonjour {{ user.username }} 👋</h1><p>{{ t.sh_tagline }}</p></div></div>
+
+<div class="card panel" style="border:1px solid #d9e9e3;background:#f4fbf8;margin-bottom:18px">
+  <p style="font-size:13px;color:var(--ink-soft)">💡 {{ t.sh_safety }}</p>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(2,1fr);gap:18px">
+  <a href="{% url 'self_assessment' %}" class="card panel" style="text-decoration:none;color:inherit">
+    <h3>📝 {{ t.snav_assess }}</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">{{ t.sh_assess_sub }}</p>
+  </a>
+  <a href="{% url 'study_chat' %}" class="card panel" style="text-decoration:none;color:inherit">
+    <h3>🤖 {{ t.snav_chat }}</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">{{ t.sh_chat_sub }}</p>
+  </a>
+  <a href="{% url 'resources' %}" class="card panel" style="text-decoration:none;color:inherit">
+    <h3>📚 {{ t.snav_resources }}</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">{{ t.sh_res_sub }}</p>
+  </a>
+  <a href="{% url 'teachers_list' %}" class="card panel" style="text-decoration:none;color:inherit">
+    <h3>👩‍🏫 {{ t.snav_teachers }}</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">{{ t.sh_teachers_sub }}</p>
+  </a>
+</div>
+
+{% if last_assessment %}
+<div class="card panel" style="margin-top:18px">
+  <h3 style="font-size:15px">{{ t.sh_last }}</h3>
+  <p class="muted" style="font-size:14px;margin-top:6px">{{ t.sh_wellbeing_score }} <b>{{ last_assessment.score }}/100</b> — {{ last_assessment.created_at|date:"d M Y" }}.</p>
+</div>
+{% endif %}
+{% endblock %}
