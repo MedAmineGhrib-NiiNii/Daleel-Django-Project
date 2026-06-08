@@ -28,9 +28,7 @@ class Student(models.Model):
     disciplinary_reports = models.IntegerField(default=0)
 
     def __str__(self):
-        # Affiche le prénom et le nom si on les a, sinon le code
-        if self.first_name and self.last_name:
-            return f"{self.first_name} {self.last_name} ({self.code})"
+        # Anonymat : on n'affiche que le code dossier, jamais le nom réel.
         return self.code
 
 class Case(models.Model):

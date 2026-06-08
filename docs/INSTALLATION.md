@@ -1,6 +1,6 @@
-# Guide d'installation et d'utilisation — Amal (أمل)
+# Guide d'installation et d'utilisation — Daleel (دليل)
 
-Ce guide permet de lancer Amal sur une machine neuve, étape par étape.
+Ce guide permet de lancer Daleel sur une machine neuve, étape par étape.
 Suivre les sections dans l'ordre. En cas de problème, voir la section
 **Dépannage** à la fin.
 

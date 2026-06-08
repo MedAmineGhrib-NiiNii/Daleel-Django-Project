@@ -1,4 +1,4 @@
-# Documentation — Amal (أمل)
+# Documentation — Daleel (دليل)
 
 Plateforme Django de détection précoce du décrochage scolaire et de
 coordination des interventions, pour les établissements tunisiens.

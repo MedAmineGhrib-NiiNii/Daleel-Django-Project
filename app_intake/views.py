@@ -75,8 +75,10 @@ def upload_csv(request):
             student, created = Student.objects.update_or_create(
                 code=str(row["student_code"]).strip(),
                 defaults={
-                    "first_name": row.get("first_name") if pd.notna(row.get("first_name")) else None,
-                    "last_name": row.get("last_name") if pd.notna(row.get("last_name")) else None,
+                    # Anonymisation à l'ingestion : on ne stocke PAS les noms,
+                    # même s'ils figurent dans le CSV. Seul le code dossier est conservé.
+                    "first_name": None,
+                    "last_name": None,
                     "age": int(row["age"]) if "age" in df.columns and pd.notna(row.get("age")) else 16,
                     "grade_level": row.get("grade_level", "N/A"),
                     "governorate": row.get("governorate") if pd.notna(row.get("governorate")) else None,
@@ -113,4 +115,4 @@ def upload_csv(request):
     if error_rows:
         msg += f" {error_rows} ligne(s) ignoree(s) (donnees invalides)."
     messages.success(request, msg)
-    return redirect("upload_csv")
+    return redirect("upload_csv") 

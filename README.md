@@ -1,64 +1,66 @@
-# Documentation — Amal (أمل)
+# Daleel — Plateforme de prévention du décrochage scolaire
 
-Plateforme Django de détection précoce du décrochage scolaire et de
-coordination des interventions, pour les établissements tunisiens.
+Projet Django (examen Python Web Programming, SESAME University) sur le thème
+*« Tunisian Hope and Future for Children and Youth »*. La plateforme détecte les
+élèves en risque de décrochage, gère les dossiers et coordonne les interventions,
+avec une piste d'audit complète et un assistant IA local (RAG).
 
-Ce dossier `docs/` rassemble la documentation exigée par le sujet.
+## Architecture (5 couches)
+- `app_intake` — ingestion des relevés CSV
+- `app_scoring` — moteur de calcul du risque (`compute_risk`)
+- `cases` — modèles métier (Student, Case, CaseEvent, Appointment) + actions
+- `dashboard` — tableau de bord, graphiques, export, assistant IA
+- `app_governance` — rôles RBAC et comptes de démonstration
 
-## Sommaire
+## Rôles (RBAC)
+- **Teacher** — importe les CSV, consulte
+- **Counselor** — prend en charge, planifie, traite les dossiers, reçoit les auto-évaluations
+- **Director** — vue globale, export, et validation des demandes de compte
+- **Student** — espace élève : auto-évaluation bien-être, assistant d'étude, ressources, profs
 
-| Document | Contenu | Exigence du sujet |
-|---|---|---|
-| [problem_statement.md](problem_statement.md) | Population, problème, décideur, workflow, valeur, règle de validation, frontière éthique | Section 18 (S1), Rubrique A |
-| [roles_matrix.md](roles_matrix.md) | Les 4 rôles et la matrice complète des permissions | Section 18 (S1), Rubrique E |
-| [state_machine.md](state_machine.md) | États, transitions, transitions bloquées, scénarios | Section 18 (S1), Rubrique B/D |
-| [risk_register.md](risk_register.md) | Risques données / décision / opérationnels + mitigations | Section 16, Rubrique E |
-| [metrics.md](metrics.md) | Métriques calculées et reproductibles | Section 10, Rubrique D/F |
-| [architecture.md](architecture.md) | Couches, apps, couche décision, justifications | Rubrique B/F |
-| [ethics_and_limitations.md](ethics_and_limitations.md) | Gouvernance des données, consentement, limites | Submission package, Rubrique A/E |
-| [data_dictionary.md](data_dictionary.md) | Contrat de données (CSV + modèles) | Section 18 (S1) |
+Tous les comptes (sauf le Directeur) passent par une inscription validée manuellement par le Directeur (sécurité anti-bot).
 
-## Démarrage rapide (reproductible)
-
+## Installation
 ```bash
+# 1) Créer et activer l'environnement virtuel
 python -m venv venv
-venv\Scripts\activate            # Windows
-pip install -r requirements.txt
+# Windows (PowerShell) :
+venv\Scripts\activate
+# macOS / Linux :
+# source venv/bin/activate
 
+# 2) Installer les dépendances
+pip install -r requirements.txt
 python manage.py migrate
-python manage.py setup_roles
-python manage.py setup_users
-python manage.py seed_demo
-python manage.py seed_resources
-python manage.py train_model
+python manage.py setup_roles      # crée Teacher / Counselor / Director / Student
+python manage.py setup_users      # crée prof / conseiller / directeur
+python manage.py seed_demo        # 200 élèves + dossiers synthétiques
+python manage.py seed_resources   # ressources pédagogiques (espace élève)
+python manage.py train_model      # entraîne le modèle + calcule AUC/métriques
 python manage.py runserver
 ```
+Connexion : http://127.0.0.1:8000/login/ — comptes démo : `prof`, `conseiller`, `directeur`, `eleve` (mot de passe `amalpassword123`).
+Inscription publique (validée par le Directeur) : http://127.0.0.1:8000/register/
 
-Site : http://127.0.0.1:8000/login/
-
-**Comptes de démonstration** (mot de passe : `amalpassword123`) :
-`directeur`, `conseiller`, `prof`, `eleve`.
-
-## Vérifications
-
+## Tests
 ```bash
-python manage.py test          # suite de tests automatisés
-python manage.py verify_audit  # intégrité de la piste d'audit
-python manage.py check --deploy
+python manage.py test
 ```
 
-## Assistant IA (optionnel, local)
+## Évaluation du modèle (métriques)
+`python manage.py train_model` entraîne une régression logistique sur données synthétiques et calcule AUC, matrice de confusion, précision/rappel. Résultats visibles sur la page « Évaluation modèle ». Les poids appris (~52/28/21) valident la pondération configurée (50/30/20), inspirée du modèle ABC de la recherche sur le décrochage.
 
-L'assistant d'étude utilise Ollama en local. Installer le modèle puis le
-« réveiller » avant la démo :
-```bash
-ollama pull qwen2.5:3b
-ollama run qwen2.5:3b "bonjour"
-```
-Si Ollama est indisponible, l'application affiche un repli propre (pas de
-plantage).
+## Trajectoire & rapports
+Chaque dossier garde un historique de score (`RiskSnapshot`) affiché en courbe sur la fiche, avec une alerte de tendance (en hausse / baisse / stable) — logique d'alerte précoce. Le bouton « Générer un rapport » produit un rapport d'intervention (rédigé par Ollama si disponible, sinon un modèle structuré), consultable dans « Rapports » et téléchargeable en PDF (ReportLab). `pip install -r requirements.txt` installe ReportLab.
 
-## Travail individuel
+## Base de données
+SQLite par défaut (prototype). Pour PostgreSQL : définir `USE_POSTGRES=1` et les variables `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` (nécessite `pip install psycopg2-binary`). Aucune logique métier ne change — seul le bloc `DATABASES` bascule.
 
-Projet réalisé individuellement (auteur : NiiNii). Toute partie est explicable
-à l'oral lors de la soutenance.
+## Données & éthique
+Données 100% synthétiques (`seed_demo`) ou anonymisées (codes `ST-2026-XXXX`).
+Aucune donnée personnelle ou médicale réelle. Toute action sensible est tracée
+dans `CaseEvent`. L'assistant IA est une aide à la décision : la validation reste humaine.
+
+## Limites connues
+- `DEBUG=True` et `SECRET_KEY` en clair : configuration de développement uniquement.
+- L'assistant IA nécessite Ollama en local (`tinyllama`) ; en son absence, une erreur propre est affichée.

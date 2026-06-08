@@ -1,4 +1,4 @@
-# Éthique, gouvernance des données et limites — Amal
+# Éthique, gouvernance des données et limites — Daleel
 
 Le projet touche des **mineurs** dans un contexte sensible. Cette section
 documente les hypothèses éthiques, la gouvernance des données et les limites,

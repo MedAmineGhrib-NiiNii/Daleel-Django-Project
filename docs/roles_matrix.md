@@ -1,4 +1,4 @@
-# Matrice des rôles et permissions — Amal
+# Matrice des rôles et permissions — Daleel
 
 Le contrôle d'accès est basé sur les rôles (RBAC) via les groupes Django.
 Toute action est filtrée par un décorateur de rôle ; une tentative non
@@ -14,7 +14,7 @@ autorisée renvoie une page **403** et est **journalisée** (événement
 | **Directeur** (`Director`) | Configure la politique, valide les comptes, supervise |
 | **Élève** (`Student`) | Accède à son espace personnel (bien-être, ressources, contact) |
 
-> Le sujet exige un minimum de 3 rôles ; Amal en implémente **4**.
+> Le sujet exige un minimum de 3 rôles ; Daleel en implémente **4**.
 
 ## 2. Matrice des permissions
 

@@ -259,6 +259,13 @@ def _display_name(user):
         return user.username
 
 
+def _party_name(conv, person):
+    """Nom à afficher : pseudonyme anonyme si la personne est l'élève du fil, sinon vrai nom."""
+    if person.id == conv.student_id:
+        return conv.student_alias or "Élève"
+    return _display_name(person)
+
+
 @student_required
 def contact_teacher(request, teacher_username):
     """L'élève ouvre (et crée si besoin) un fil avec un enseignant. Réservé aux élèves."""
@@ -350,7 +357,7 @@ def my_messages(request):
     for c in convs.prefetch_related("messages"):
         last = c.messages.last()
         other = c.teacher if c.student_id == u.id else c.student
-        rows.append({"id": c.id, "name": _display_name(other), "kind": c.kind,
+        rows.append({"id": c.id, "name": _party_name(c, other), "kind": c.kind,
                      "preview": (last.body[:60] if last else ""), "updated": c.updated_at})
     is_staff = not _in_group(u, "Student")
     return render(request, "messaging/inbox.html", {"rows": rows, "is_teacher": is_staff})
@@ -374,7 +381,7 @@ def conversation_thread(request, conv_id):
             return redirect("conversation_thread", conv_id=conv.id)
     other = conv.teacher if conv.student_id == request.user.id else conv.student
     return render(request, "messaging/thread.html", {
-        "counterpart": _display_name(other), "messages_list": conv.messages.all(),
+        "counterpart": _party_name(conv, other), "messages_list": conv.messages.all(),
         "post_url": reverse("conversation_thread", args=[conv.id]), "can_send": True,
         "me_id": request.user.id,
     })

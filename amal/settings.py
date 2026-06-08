@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     
     # --- Bibliothèques externes requises ---
     'rest_framework',
+    'graphene_django',
     
     # --- Les 5 couches applicatives (Architecture Amal) ---
     'app_intake',      # <-- Corrigé avec le préfixe
@@ -141,3 +142,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'dashboard_router'  # <-- LA CORRECTION EST ICI !
 LOGOUT_REDIRECT_URL = 'login'          
 LOGIN_URL = 'login'
+
+# --- API REST (DRF) ---
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+}
+
+# --- GraphQL ---
+GRAPHENE = {"SCHEMA": "cases.schema.schema"}

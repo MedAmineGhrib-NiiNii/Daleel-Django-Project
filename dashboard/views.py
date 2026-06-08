@@ -280,7 +280,7 @@ def risk_simulator(request):
     sample = []
     for case in Case.objects.select_related('student').order_by('-risk_score')[:40]:
         s = case.student
-        label = s.code + (f" — {s.first_name} {s.last_name}" if s.first_name else "")
+        label = s.code
         sample.append({
             'id': case.id, 'label': label,
             'absences': s.absences_percentage, 'grade_drop': s.grade_drop,

@@ -216,3 +216,40 @@ class AuditChainTests(TestCase):
         # falsification : on modifie le contenu -> le hash recalculé ne correspond plus
         e1.reason = "FALSIFIE"
         self.assertNotEqual(e1.compute_hash(), e1.entry_hash)
+
+
+class ApiAndGraphQLTests(TestCase):
+    """API REST + GraphQL : staff autorisé, données anonymes, élève refusé."""
+    def setUp(self):
+        for n in ["Counselor", "Student"]:
+            Group.objects.get_or_create(name=n)
+        self.staff = User.objects.create_user(username="c_api", password="pwd12345")
+        self.staff.groups.add(Group.objects.get(name="Counselor"))
+        self.stud = User.objects.create_user(username="s_api", password="pwd12345")
+        self.stud.groups.add(Group.objects.get(name="Student"))
+        sc = School.objects.create(name="École API")
+        st = Student.objects.create(code="ST-API-1", age=16, grade_level="2A", school=sc,
+                                    first_name="Réel", last_name="Nom")
+        Case.objects.create(student=st, risk_score=70, risk_band="HIGH", status="NEW")
+
+    def test_rest_api_staff_ok_and_anonymous(self):
+        c = Client(); c.login(username="c_api", password="pwd12345")
+        r = c.get("/api/cases/", HTTP_ACCEPT="application/json")
+        self.assertEqual(r.status_code, 200)
+        body = r.json()[0]
+        self.assertIn("student_code", body)
+        self.assertNotIn("first_name", body)  # anonyme
+
+    def test_rest_api_student_forbidden(self):
+        c = Client(); c.login(username="s_api", password="pwd12345")
+        self.assertEqual(c.get("/api/cases/", HTTP_ACCEPT="application/json").status_code, 403)
+
+    def test_graphql_staff_returns_anonymous_cases(self):
+        import json
+        c = Client(); c.login(username="c_api", password="pwd12345")
+        q = '{ cases { studentCode riskBand } }'
+        r = c.post("/graphql/", data=json.dumps({"query": q}), content_type="application/json")
+        self.assertEqual(r.status_code, 200)
+        cases = r.json()["data"]["cases"]
+        self.assertTrue(len(cases) >= 1)
+        self.assertIn("studentCode", cases[0])

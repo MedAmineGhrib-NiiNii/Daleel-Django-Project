@@ -1,8 +1,8 @@
-# Architecture — Amal
+# Architecture — Daleel
 
 ## 1. Vue en couches
 
-Amal suit l'architecture logique de référence du sujet, organisée en couches.
+Daleel suit l'architecture logique de référence du sujet, organisée en couches.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

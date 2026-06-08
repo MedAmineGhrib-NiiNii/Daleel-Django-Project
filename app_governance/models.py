@@ -62,6 +62,8 @@ class Conversation(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="conv_as_student")
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name="conv_as_teacher")
     kind = models.CharField(max_length=10, choices=KIND_CHOICES, default="TEACHER")
+    # Pseudonyme anonyme de l'élève (généré à la création, stable dans la conversation)
+    student_alias = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -74,8 +76,14 @@ class Conversation(models.Model):
         """Participant côté staff (enseignant ou conseiller)."""
         return self.teacher
 
+    def save(self, *args, **kwargs):
+        if not self.student_alias:
+            import random
+            self.student_alias = f"Élève {random.randint(100, 999)}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.student} ↔ {self.teacher} ({self.kind})"
+        return f"{self.student_alias or self.student} ↔ {self.teacher} ({self.kind})"
 
 
 class Message(models.Model):

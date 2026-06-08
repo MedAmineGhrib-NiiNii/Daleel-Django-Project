@@ -1,11 +1,11 @@
-# Énoncé du problème — Amal (أمل)
+# Énoncé du problème — Daleel (دليل)
 
 > Plateforme Django de détection précoce et d'accompagnement du décrochage
 > scolaire chez les jeunes en Tunisie.
 
 ## 1. Énoncé en une phrase
 
-Amal aide les établissements scolaires tunisiens à **repérer tôt** les élèves
+Daleel aide les établissements scolaires tunisiens à **repérer tôt** les élèves
 en risque de décrochage et à **coordonner les interventions** (enseignants,
 conseillers, direction) à travers un flux de travail tracé, explicable et
 respectueux de la vie privée.

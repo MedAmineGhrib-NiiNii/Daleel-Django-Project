@@ -1,4 +1,4 @@
-# Tableau de métriques d'évaluation — Amal
+# Tableau de métriques d'évaluation — Daleel
 
 Conformément à la Section 10 du sujet, l'évaluation est **mesurable** et
 **reproductible**. Toutes ces métriques sont calculées à partir des données
@@ -22,7 +22,7 @@ réelles du système et affichées sur la page **Métriques**
 
 ## 2. Couverture de sécurité et fiabilité
 
-| Métrique du sujet | Comment Amal y répond |
+| Métrique du sujet | Comment Daleel y répond |
 |---|---|
 | Taux de validation des données | Schéma vérifié à l'import ; mauvais schéma rejeté proprement |
 | Efficacité de récupération | Échecs injectés gérés sans plantage (CSV invalide, 403) |

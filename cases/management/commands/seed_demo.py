@@ -47,8 +47,6 @@ class Command(BaseCommand):
             ecole = random.choice(ecoles)
             student = Student.objects.create(
                 code=f"ST-2026-{i + 1:04d}",
-                first_name=random.choice(PRENOMS),
-                last_name=random.choice(NOMS),
                 age=random.randint(15, 19),
                 grade_level=random.choice(niveaux),
                 governorate=ecole.region,

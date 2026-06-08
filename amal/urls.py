@@ -5,6 +5,9 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views as core_views
+from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
+from cases.schema import schema as graphql_schema
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,6 +22,8 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('intake/', include('app_intake.urls')), 
     path('cases/', include('cases.urls')),
+    path('api/', include('amal.api_urls')),
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=graphql_schema)), name='graphql'),
     path('', include('app_governance.urls')),
 ]
 

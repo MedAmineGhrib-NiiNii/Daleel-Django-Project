@@ -50,7 +50,7 @@ transition est journalisée (qui, quand, quoi, résultat).
 
 ## 4. Transitions bloquées (failure injection)
 
-Le sujet exige au moins un échec contrôlé par scénario. Amal en gère plusieurs :
+Le sujet exige au moins un échec contrôlé par scénario. Daleel en gère plusieurs :
 
 | Tentative | Comportement attendu |
 |---|---|

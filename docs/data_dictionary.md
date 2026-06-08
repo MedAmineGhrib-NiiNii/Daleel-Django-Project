@@ -1,4 +1,4 @@
-# Dictionnaire des données — Amal
+# Dictionnaire des données — Daleel
 
 Contrat de données pour l'import et les modèles principaux.
 

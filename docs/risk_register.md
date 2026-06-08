@@ -1,4 +1,4 @@
-# Registre des risques et garde-fous éthiques — Amal
+# Registre des risques et garde-fous éthiques — Daleel
 
 Conformément à la Section 16 du sujet, ce registre liste les risques par
 catégorie et les mesures de mitigation mises en place dans le code.
