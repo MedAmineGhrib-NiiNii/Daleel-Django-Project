@@ -3,6 +3,13 @@
 {% block nav_shome %}active{% endblock %}
 {% block content %}
 <div class="topbar"><div><h1>Bonjour {{ user.username }} 👋</h1><p>{{ t.sh_tagline }}</p></div></div>
+{% if quote %}
+<div class="card panel" style="margin-bottom:16px;border-left:4px solid var(--amber)">
+  <div style="font-size:15px;font-style:italic;line-height:1.6">“{{ quote.text }}”</div>
+  <div class="muted" style="font-size:13px;margin-top:6px">— {{ quote.author }} · <span style="font-size:11px">{{ quote.source }}</span></div>
+</div>
+{% endif %}
+
 
 <div class="card panel" style="border:1px solid #d9e9e3;background:#f4fbf8;margin-bottom:18px">
   <p style="font-size:13px;color:var(--ink-soft)">💡 {{ t.sh_safety }}</p>

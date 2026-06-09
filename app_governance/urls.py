@@ -17,6 +17,7 @@ urlpatterns = [
     path('ressources/ajouter/', views.add_resource, name='add_resource'),
     path('ressources/<int:resource_id>/supprimer/', views.delete_resource, name='delete_resource'),
     path('eleve/profs/', views.teachers_list, name='teachers_list'),
+    path('eleve/quiz/', views.quiz, name='quiz'),
     path('prof/profil/', views.teacher_profile_edit, name='teacher_profile_edit'),
     path('eleve/conseillers/', views.counselors_list, name='counselors_list'),
     path('messages/conseiller/<str:counselor_username>/', views.contact_counselor, name='contact_counselor'),

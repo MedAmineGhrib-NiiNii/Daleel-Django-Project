@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ t.quiz_title }}{% endblock %}
+{% block nav_quiz %}active{% endblock %}
+{% block content %}
+<div class="topbar"><div><h1>{{ t.quiz_title }}</h1><p>{{ t.quiz_sub }}</p></div></div>
+
+<div class="card panel" style="margin-bottom:16px">
+  <form method="get" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <label style="font-size:14px;font-weight:600">{{ t.quiz_category }}</label>
+    <select name="category" style="padding:9px;border:1px solid var(--line);border-radius:10px;font-family:inherit">
+      {% for code, name in categories.items %}
+      <option value="{{ code }}" {% if code == selected %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">{{ t.quiz_new }}</button>
+  </form>
+</div>
+
+{% if quiz %}
+<div class="card panel">
+  <div id="quizBox">
+    {% for q in quiz.questions %}
+    <div class="quiz-q" data-correct="{{ q.correct }}" style="padding:14px 0;{% if not forloop.last %}border-bottom:1px solid var(--line){% endif %}">
+      <div style="font-weight:600;font-size:15px;margin-bottom:10px">{{ forloop.counter }}. {{ q.question }}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        {% for opt in q.options %}
+        <label class="quiz-opt" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px">
+          <input type="radio" name="q{{ forloop.parentloop.counter }}" value="{{ opt }}" style="margin-right:8px">{{ opt }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <button id="submitQuiz" class="btn btn-primary" style="margin-top:16px">{{ t.quiz_submit }}</button>
+  <div id="quizScore" style="margin-top:14px;font-size:16px;font-weight:700"></div>
+  <p class="muted" style="font-size:12px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    {{ t.quiz_source }} : {{ quiz.source }} · {{ t.nat_fetched }} {{ quiz.fetched_at }}
+  </p>
+</div>
+
+<script>
+document.getElementById('submitQuiz').addEventListener('click', function(){
+  var qs = document.querySelectorAll('.quiz-q'), score = 0;
+  qs.forEach(function(q, i){
+    var correct = q.getAttribute('data-correct');
+    var chosen = q.querySelector('input[name="q'+(i+1)+'"]:checked');
+    q.querySelectorAll('.quiz-opt').forEach(function(opt){
+      var val = opt.querySelector('input').value;
+      if (val === correct){ opt.style.background = 'var(--low-bg)'; opt.style.borderColor = 'var(--low)'; }
+      else if (chosen && opt.querySelector('input').checked){ opt.style.background = 'var(--high-bg)'; opt.style.borderColor = 'var(--high)'; }
+    });
+    if (chosen && chosen.value === correct) score++;
+  });
+  document.getElementById('quizScore').textContent = '{{ t.quiz_your_score }} ' + score + ' / ' + qs.length;
+});
+</script>
+{% else %}
+<div class="card panel"><div class="empty">{{ t.quiz_unavailable }}</div></div>
+{% endif %}
+{% endblock %}

@@ -48,6 +48,25 @@
   </div>
 </div>
 
+{% if national_context %}
+<div class="card" style="margin-bottom:18px;animation:rise .5s ease both;animation-delay:.15s">
+  <div class="panel-head">
+    <h3>{{ t.nat_context }}</h3>
+    <span class="muted">{{ t.nat_context_src }}</span>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:14px;margin-top:12px">
+    {% for ind in national_context %}
+    <div style="border:1px solid var(--line);border-radius:12px;padding:14px">
+      <div style="font-size:26px;font-weight:700;color:var(--teal)">{{ ind.value }}%</div>
+      <div style="font-size:13px;margin-top:4px">{{ ind.label }}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px">{{ ind.source }} · {{ ind.year }} · {{ t.nat_fetched }} {{ ind.fetched_at }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="muted" style="font-size:12px;margin-top:10px">{{ t.nat_context_note }}</p>
+</div>
+{% endif %}
+
 <div class="card" style="animation:rise .5s ease both;animation-delay:.18s">
   <div class="panel-head">
     <h3>{{ t.priority_cases }}</h3>

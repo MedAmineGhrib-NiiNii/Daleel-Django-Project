@@ -65,6 +65,18 @@ def role_required(test_func):
 
 
 # On protège la vue avec notre décorateur de rôle
+def _national_context_cached():
+    """Contexte national (Banque Mondiale), mis en cache 24h pour éviter de
+    rappeler l'API à chaque chargement. Repli silencieux si injoignable."""
+    from django.core.cache import cache
+    from app_governance.external_apis import world_bank_context
+    data = cache.get("world_bank_context")
+    if data is None:
+        data = world_bank_context()
+        cache.set("world_bank_context", data, 60 * 60 * 24)
+    return data
+
+
 @role_required(is_authorized_for_dashboard)
 def dashboard_home(request):
     # KPI 1 : Total des élèves suivis
@@ -111,6 +123,7 @@ def dashboard_home(request):
         'risk_distribution': json.dumps(risk_distribution),
         'status_chart': json.dumps(status_chart),
         'gov_chart': json.dumps(gov_chart),
+        'national_context': _national_context_cached(),
     }
 
     return render(request, 'dashboard/index.html', context)

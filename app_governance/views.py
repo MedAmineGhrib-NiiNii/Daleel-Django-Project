@@ -116,8 +116,25 @@ def review_request(request, req_id, decision):
 
 @student_required
 def student_home(request):
+    from .external_apis import motivation_quote
+    from django.core.cache import cache
+    quote = cache.get("daily_quote")
+    if quote is None:
+        quote = motivation_quote()
+        cache.set("daily_quote", quote, 60 * 60 * 12)
     last = SelfAssessment.objects.filter(student_user=request.user).order_by("-created_at").first()
-    return render(request, "student/home.html", {"last_assessment": last})
+    return render(request, "student/home.html", {"last_assessment": last, "quote": quote})
+
+
+@student_required
+def quiz(request):
+    """Quiz de connaissances via Open Trivia Database (API externe, repli si hors-ligne)."""
+    from .external_apis import trivia_questions, OPENTDB_CATEGORIES
+    category = request.GET.get("category", "9")
+    result = trivia_questions(amount=5, category=category)
+    return render(request, "student/quiz.html", {
+        "quiz": result, "categories": OPENTDB_CATEGORIES, "selected": category,
+    })
 
 
 WELLBEING_QUESTIONS = [
