@@ -5,15 +5,15 @@ from cases.serializers import CaseSerializer
 
 
 class IsStaffMember(permissions.BasePermission):
-    """Accès API réservé au personnel (Enseignant / Conseiller / Directeur)."""
-    message = "Accès réservé au personnel autorisé."
+    """Accès API réservé au conseiller et au directeur."""
+    message = "Accès réservé au conseiller et au directeur."
 
     def has_permission(self, request, view):
         u = request.user
         return bool(
             u and u.is_authenticated and (
                 u.is_superuser or
-                u.groups.filter(name__in=["Teacher", "Counselor", "Director"]).exists()
+                u.groups.filter(name__in=["Counselor", "Director"]).exists()
             )
         )
 

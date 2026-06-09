@@ -63,4 +63,4 @@ dans `CaseEvent`. L'assistant IA est une aide à la décision : la validation re
 
 ## Limites connues
 - `DEBUG=True` et `SECRET_KEY` en clair : configuration de développement uniquement.
-- L'assistant IA nécessite Ollama en local. Deux modèles sont utilisés : `qwen2.5:3b` pour l'assistant d'étude de l'élève (meilleure qualité en français) et `tinyllama` pour la génération des plans et des rapports (plus léger). En l'absence d'Ollama, une erreur propre est affichée.
+- L'assistant IA nécessite Ollama en local. Deux modèles sont utilisés : `qwen2.5:3b` pour l'assistant d'étude de l'élève (meilleure qualité en français) et `tinyllama` pour la génération des plans et des rapports (plus léger). En l'absence d'Ollama, une erreur propre est affichée. 

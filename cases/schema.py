@@ -6,7 +6,7 @@ from cases.models import Case
 def _is_staff(user):
     return bool(user and user.is_authenticated and (
         user.is_superuser or
-        user.groups.filter(name__in=["Teacher", "Counselor", "Director"]).exists()))
+        user.groups.filter(name__in=["Counselor", "Director"]).exists()))
 
 
 class CaseType(DjangoObjectType):
