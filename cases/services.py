@@ -6,7 +6,7 @@ from app_scoring.services import band_for_score
 
 def update_appointment_status(appointment_id, new_status, actor=None, notes=""):
     """
-    Met a jour le statut d'un RDV et fait avancer le dossier (Scenario 2).
+    Met a jour le statut d'un RDV et fait avancer le dossier .
     - MISSED : penalite de risque + alerte + action de relance/orientation (referral) tracees.
     - ATTENDED : seance honoree, dossier en suivi.
     Retourne (appointment, message).
