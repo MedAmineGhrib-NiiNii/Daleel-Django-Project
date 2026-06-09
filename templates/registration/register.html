@@ -54,7 +54,7 @@
         {% for code, label in roles %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
       </select>
 
-      <div id="code-wrap" style="display:block">
+      <div id="code-wrap" style="display:none">
         <label for="student_code">Code élève (dossier)</label>
         <input type="text" id="student_code" name="student_code" placeholder="ex. ST-2026-0001">
         <div class="hint">Pour les élèves : permet de relier vos auto-évaluations à votre conseiller.</div>
@@ -71,12 +71,18 @@
 
       <label for="document">Document justificatif</label>
       <input type="file" id="document" name="document" accept=".pdf,.jpg,.jpeg,.png,.docx">
-      <div class="hint">Pièce de vérification (CV, attestation…). Pour la démo : un document synthétique suffit — n'envoyez pas de document personnel réel.</div>
 
       <button type="submit" class="btn">Envoyer ma demande</button>
     </form>
-    <div class="note">Vérification anti-bot : chaque demande est contrôlée manuellement par le Directeur. Aucun compte n'est actif sans cette validation.</div>
     <a class="back" href="{% url 'login' %}">{{ t.have_account }}</a>
   </div>
+  <script>
+    (function(){
+      var r = document.getElementById('role');
+      function toggle(){ document.getElementById('code-wrap').style.display = (r.value === 'Student') ? 'block' : 'none'; }
+      r.addEventListener('change', toggle);
+      toggle();
+    })();
+  </script>
 </body>
 </html>
