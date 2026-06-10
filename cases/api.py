@@ -31,6 +31,12 @@ class CaseListAPI(generics.ListAPIView):
             if band not in {"LOW", "MEDIUM", "HIGH"}:
                 raise PermissionDenied("Niveau de risque invalide (LOW, MEDIUM ou HIGH).")
             qs = qs.filter(risk_band=band)
+        status = self.request.query_params.get("status")
+        if status:
+            qs = qs.filter(status=status)
+        gov = self.request.query_params.get("governorate")
+        if gov:
+            qs = qs.filter(student__governorate=gov)
         return qs
 
 

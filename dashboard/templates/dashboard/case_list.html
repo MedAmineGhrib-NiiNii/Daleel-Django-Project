@@ -42,24 +42,51 @@
 <div class="card" style="animation:rise .5s ease both;animation-delay:.08s">
   <table>
     <thead><tr><th>{{ t.col_student }}</th><th>{{ t.col_governorate }}</th><th>{{ t.col_status }}</th><th>{{ t.col_risk }}</th><th>{{ t.col_score }}</th></tr></thead>
-    <tbody>
-      {% for case in cases %}
-      <tr>
-        <td><a class="code-link" href="{% url 'case_detail' case.id %}">{{ case.student.code }}</a>
-          {% if case.student.first_name %}<div class="muted">{{ case.student.first_name }} {{ case.student.last_name }}</div>{% endif %}</td>
-        <td class="muted">{{ case.student.governorate|default:"—" }}</td>
-        <td><span class="badge b-stat">{{ case.get_status_display }}</span></td>
-        <td>
-          {% if case.risk_band == 'HIGH' %}<span class="badge b-high">{{ t.risk_high }}</span>
-          {% elif case.risk_band == 'MEDIUM' %}<span class="badge b-med">{{ t.risk_medium }}</span>
-          {% else %}<span class="badge b-low">{{ t.risk_low }}</span>{% endif %}
-        </td>
-        <td><strong>{{ case.risk_score }}</strong><span class="muted">/100</span></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5"><div class="empty">{{ t.no_match }}</div></td></tr>
-      {% endfor %}
+    <tbody id="caseRows">
+      <tr><td colspan="5"><div class="empty">Chargement via l'API…</div></td></tr>
     </tbody>
   </table>
 </div>
+
+<script>
+// Le front consomme l'API REST (/api/cases/) pour remplir le tableau.
+const RISK = {
+  HIGH:  {cls:'b-high', label:"{{ t.risk_high }}"},
+  MEDIUM:{cls:'b-med',  label:"{{ t.risk_medium }}"},
+  LOW:   {cls:'b-low',  label:"{{ t.risk_low }}"},
+};
+(function(){
+  // Lit les filtres choisis dans le formulaire (rendus côté serveur)
+  const f = document.querySelector('form');
+  const params = new URLSearchParams();
+  const status = f.querySelector('[name=status]').value;
+  const band   = f.querySelector('[name=risk_band]').value;
+  const gov    = f.querySelector('[name=governorate]').value;
+  if (status) params.set('status', status);
+  if (band)   params.set('risk_band', band);
+  if (gov)    params.set('governorate', gov);
+
+  fetch('/api/cases/?' + params.toString(), {headers:{'Accept':'application/json'}})
+    .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(rows => {
+      const tb = document.getElementById('caseRows');
+      if (!rows.length){ tb.innerHTML = '<tr><td colspan="5"><div class="empty">{{ t.no_match }}</div></td></tr>'; return; }
+      tb.innerHTML = rows.map(c => {
+        const r = RISK[c.risk_band] || RISK.LOW;
+        return `<tr>
+          <td><a class="code-link" href="/dashboard/case/${c.id}/">${c.student_code}</a></td>
+          <td class="muted">${c.governorate || '—'}</td>
+          <td><span class="badge b-stat">${c.status_display}</span></td>
+          <td><span class="badge ${r.cls}">${r.label}</span></td>
+          <td><strong>${c.risk_score}</strong><span class="muted">/100</span></td>
+        </tr>`;
+      }).join('');
+    })
+    .catch(() => {
+      // Repli : si l'API échoue, on recharge la page en version serveur
+      document.getElementById('caseRows').innerHTML =
+        '<tr><td colspan="5"><div class="empty">API indisponible. <a href="?'+params.toString()+'&fallback=1">Recharger</a></div></td></tr>';
+    });
+})();
+</script>
 {% endblock %}
