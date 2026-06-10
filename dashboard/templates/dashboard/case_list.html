@@ -12,24 +12,24 @@
 </div>
 
 <div class="card panel" style="margin-bottom:18px;animation:rise .5s ease both">
-  <form method="get" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+  <form method="get" id="filterForm" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
     <div>
       <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_status }}</label>
-      <select name="status" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+      <select name="status" id="fStatus" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
         <option value="">{{ t.filter_all }}</option>
         {% for code, label in status_choices %}<option value="{{ code }}" {% if cur_status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_risk }}</label>
-      <select name="risk_band" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+      <select name="risk_band" id="fBand" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
         <option value="">{{ t.filter_all }}</option>
         {% for code, label in band_choices %}<option value="{{ code }}" {% if cur_band == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">{{ t.filter_gov }}</label>
-      <select name="governorate" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
+      <select name="governorate" id="fGov" style="font-family:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fffdf8;min-width:150px">
         <option value="">{{ t.filter_all }}</option>
         {% for g in governorates %}<option value="{{ g }}" {% if cur_gov == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
       </select>
@@ -43,50 +43,58 @@
   <table>
     <thead><tr><th>{{ t.col_student }}</th><th>{{ t.col_governorate }}</th><th>{{ t.col_status }}</th><th>{{ t.col_risk }}</th><th>{{ t.col_score }}</th></tr></thead>
     <tbody id="caseRows">
-      <tr><td colspan="5"><div class="empty">Chargement via l'API…</div></td></tr>
+      <tr><td colspan="5"><div class="empty">Chargement via l'API REST…</div></td></tr>
     </tbody>
   </table>
 </div>
 
 <script>
-// Le front consomme l'API REST (/api/cases/) pour remplir le tableau.
-const RISK = {
-  HIGH:  {cls:'b-high', label:"{{ t.risk_high }}"},
-  MEDIUM:{cls:'b-med',  label:"{{ t.risk_medium }}"},
-  LOW:   {cls:'b-low',  label:"{{ t.risk_low }}"},
-};
 (function(){
-  // Lit les filtres choisis dans le formulaire (rendus côté serveur)
-  const f = document.querySelector('form');
-  const params = new URLSearchParams();
-  const status = f.querySelector('[name=status]').value;
-  const band   = f.querySelector('[name=risk_band]').value;
-  const gov    = f.querySelector('[name=governorate]').value;
-  if (status) params.set('status', status);
-  if (band)   params.set('risk_band', band);
-  if (gov)    params.set('governorate', gov);
+  function init(){
+    var RISK = {
+      HIGH:  {cls:'b-high', label:"{{ t.risk_high }}"},
+      MEDIUM:{cls:'b-med',  label:"{{ t.risk_medium }}"},
+      LOW:   {cls:'b-low',  label:"{{ t.risk_low }}"}
+    };
+    var tb = document.getElementById('caseRows');
+    var params = new URLSearchParams();
+    var s = document.getElementById('fStatus');
+    var b = document.getElementById('fBand');
+    var g = document.getElementById('fGov');
+    if (s && s.value) params.set('status', s.value);
+    if (b && b.value) params.set('risk_band', b.value);
+    if (g && g.value) params.set('governorate', g.value);
 
-  fetch('/api/cases/?' + params.toString(), {headers:{'Accept':'application/json'}})
-    .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-    .then(rows => {
-      const tb = document.getElementById('caseRows');
-      if (!rows.length){ tb.innerHTML = '<tr><td colspan="5"><div class="empty">{{ t.no_match }}</div></td></tr>'; return; }
-      tb.innerHTML = rows.map(c => {
-        const r = RISK[c.risk_band] || RISK.LOW;
-        return `<tr>
-          <td><a class="code-link" href="/dashboard/case/${c.id}/">${c.student_code}</a></td>
-          <td class="muted">${c.governorate || '—'}</td>
-          <td><span class="badge b-stat">${c.status_display}</span></td>
-          <td><span class="badge ${r.cls}">${r.label}</span></td>
-          <td><strong>${c.risk_score}</strong><span class="muted">/100</span></td>
-        </tr>`;
-      }).join('');
-    })
-    .catch(() => {
-      // Repli : si l'API échoue, on recharge la page en version serveur
-      document.getElementById('caseRows').innerHTML =
-        '<tr><td colspan="5"><div class="empty">API indisponible. <a href="?'+params.toString()+'&fallback=1">Recharger</a></div></td></tr>';
-    });
+    fetch('/api/cases/?' + params.toString(), {headers:{'Accept':'application/json'}, credentials:'same-origin'})
+      .then(function(r){ if(!r.ok){ throw new Error('HTTP ' + r.status); } return r.json(); })
+      .then(function(rows){
+        if(!rows || !rows.length){
+          tb.innerHTML = '<tr><td colspan="5"><div class="empty">{{ t.no_match }}</div></td></tr>';
+          return;
+        }
+        var html = '';
+        for (var i=0;i<rows.length;i++){
+          var c = rows[i];
+          var r = RISK[c.risk_band] || RISK.LOW;
+          html += '<tr>'
+            + '<td><a class="code-link" href="/dashboard/case/'+c.id+'/">'+c.student_code+'</a></td>'
+            + '<td class="muted">'+(c.governorate || '—')+'</td>'
+            + '<td><span class="badge b-stat">'+c.status_display+'</span></td>'
+            + '<td><span class="badge '+r.cls+'">'+r.label+'</span></td>'
+            + '<td><strong>'+c.risk_score+'</strong><span class="muted">/100</span></td>'
+            + '</tr>';
+        }
+        tb.innerHTML = html;
+      })
+      .catch(function(err){
+        tb.innerHTML = '<tr><td colspan="5"><div class="empty">Erreur API : '+err.message+'</div></td></tr>';
+      });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 {% endblock %}
