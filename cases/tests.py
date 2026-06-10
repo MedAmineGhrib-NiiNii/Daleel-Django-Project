@@ -253,3 +253,22 @@ class ApiAndGraphQLTests(TestCase):
         cases = r.json()["data"]["cases"]
         self.assertTrue(len(cases) >= 1)
         self.assertIn("studentCode", cases[0])
+
+
+class CaseIntegrityTests(TestCase):
+    """Empreinte d'intégrité SHA-256 par dossier + détection d'altération."""
+    def setUp(self):
+        sc = School.objects.create(name="École Hash")
+        self.st = Student.objects.create(code="ST-HASH-1", age=16, grade_level="2A", school=sc,
+                                         absences_percentage=40, grade_drop=12.0, disciplinary_reports=2)
+        self.case = Case.objects.create(student=self.st, risk_score=55, risk_band="MEDIUM", status="NEW")
+
+    def test_hash_is_set_on_save(self):
+        self.assertEqual(len(self.case.integrity_hash), 64)
+        self.assertEqual(self.case.integrity_hash, self.case.compute_integrity_hash())
+
+    def test_tampering_is_detected(self):
+        # Altération directe en base (contourne save()) -> l'empreinte ne correspond plus
+        Student.objects.filter(id=self.st.id).update(absences_percentage=5)
+        self.case.refresh_from_db()
+        self.assertNotEqual(self.case.integrity_hash, self.case.compute_integrity_hash())

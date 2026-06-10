@@ -58,6 +58,27 @@ class Case(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Empreinte d'intégrité SHA-256 : sceau sur les champs clés du dossier.
+    # Permet de détecter toute altération frauduleuse (cf. verify_cases).
+    integrity_hash = models.CharField(max_length=64, blank=True)
+
+    def compute_integrity_hash(self):
+        import hashlib
+        content = "|".join(str(x) for x in [
+            self.student.code,
+            self.student.absences_percentage,
+            self.student.grade_drop,
+            self.student.disciplinary_reports,
+            self.risk_score,
+            self.risk_band,
+        ])
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+    def save(self, *args, **kwargs):
+        # Recalcule l'empreinte à chaque sauvegarde légitime (via l'application).
+        if self.student_id:
+            self.integrity_hash = self.compute_integrity_hash()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Case {self.id} - {self.student.code} ({self.status})"
